@@ -6,6 +6,8 @@ const OFF_FIELDS = [
   'brands',
   'image_url',
   'ingredients_text',
+  'ingredients_text_tr',
+  'ingredients_text_en',
   'nutriments',
   'additives_tags',
   'allergens_tags',
@@ -29,6 +31,8 @@ interface OffProduct {
   brands?: string;
   image_url?: string;
   ingredients_text?: string;
+  ingredients_text_tr?: string;
+  ingredients_text_en?: string;
   nutriments?: OffNutriments;
   additives_tags?: string[];
   allergens_tags?: string[];
@@ -47,6 +51,15 @@ function stripLocalePrefix(tag: string): string {
   return colonIndex === -1 ? tag : tag.slice(colonIndex + 1);
 }
 
+/**
+ * OFF'ta ürünler çoğunlukla girildiği ülkenin dilinde saklanır (Fransızca, Almanca vb.) ve
+ * `ingredients_text` alanı bu orijinal dili döndürür. Türkçe çevirisi (`ingredients_text_tr`)
+ * genelde yoktur; bu durumda İngilizce çeviri, orijinal dilden çok daha anlaşılır bir fallback'tir.
+ */
+function pickIngredientsText(raw: OffProduct): string | undefined {
+  return raw.ingredients_text_tr?.trim() || raw.ingredients_text_en?.trim() || raw.ingredients_text?.trim();
+}
+
 function mapOffProductToProduct(barcode: string, raw: OffProduct): Product {
   const n = raw.nutriments ?? {};
   return {
@@ -54,7 +67,7 @@ function mapOffProductToProduct(barcode: string, raw: OffProduct): Product {
     name: raw.product_name?.trim() || 'Bilinmeyen Ürün',
     brand: raw.brands?.split(',')[0]?.trim(),
     imageUrl: raw.image_url,
-    ingredientsText: raw.ingredients_text?.trim(),
+    ingredientsText: pickIngredientsText(raw),
     nutrition: {
       energyKcal: n['energy-kcal_100g'],
       fat: n.fat_100g,
@@ -78,7 +91,7 @@ function mapOffProductToProduct(barcode: string, raw: OffProduct): Product {
  * Ürün bulunamazsa (status 0) `null` döner; ağ/format hatalarında Error fırlatır.
  */
 export async function fetchProductFromOpenFoodFacts(barcode: string): Promise<Product | null> {
-  const url = `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json?fields=${OFF_FIELDS}`;
+  const url = `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json?lc=tr&fields=${OFF_FIELDS}`;
 
   const response = await fetch(url);
   if (!response.ok) {
