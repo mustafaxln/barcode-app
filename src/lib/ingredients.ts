@@ -6,9 +6,15 @@
  * enerji ve besin öğeleri vb.) önce kesiyor. Amaç mükemmel değil, "kabaca doğru" bir sonuç.
  */
 // Not: Türkçe'de büyük noktalı "İ" harfi, JS regex'in varsayılan case-insensitive eşleştirmesinde
-// düz "i" ile eşleşmez ("Turkish-I" problemi). Bu yüzden ilk harf için [İIıi] karakter sınıfını
-// açıkça belirtiyoruz.
-const INGREDIENTS_START_MARKERS = [/[İIıi][cç]indekiler\s*[:：]/i, /ingredients\s*[:：]/i];
+// düz "i" ile eşleşmez ("Turkish-I" problemi). Bu yüzden ilgili kelimenin ilk harfi için [İIıi]
+// karakter sınıfını açıkça belirtiyoruz.
+//
+// Bazı çok-pazarlı ürünlerde (örn. birden fazla ülkeye giden ambalajlar) OFF'a TEK metin
+// alanında art arda birden fazla dilin içindekiler bölümü eklenmiş oluyor ("Ingredients: ...
+// Ingrédients: ... Ingredientes: ..."). Bu yüzden sadece İLK işareti değil, tüm işaretleri
+// buluyoruz: ilk işaretten ikinci işarete kadarki kısmı alıyoruz (yani sadece ilk dili).
+const LABEL_HEADER_PATTERN =
+  /([İIıi][cç]indekiler|ingredients|ingr[ée]dients|ingredientes|ingredienti|zutaten|p[eë]rb[eë]r[eë]sit)\s*[:：]/gi;
 
 const IRRELEVANT_TAIL_MARKERS = [
   /üretici\s*(firma)?\s*[:：]?/i,
@@ -25,14 +31,28 @@ const IRRELEVANT_TAIL_MARKERS = [
   /www\./i,
 ];
 
-export function extractIngredientsSection(rawText: string): string {
-  let text = rawText;
+/** Kaba bir "bu parça gerçek bir madde listesine benziyor mu" kontrolü (virgül yoğunluğuna bakarak). */
+function looksLikeIngredientsList(segment: string): boolean {
+  const commaCount = (segment.match(/,/g) ?? []).length;
+  return commaCount >= 2 && segment.trim().length >= 15;
+}
 
-  for (const marker of INGREDIENTS_START_MARKERS) {
-    const match = text.match(marker);
-    if (match && match.index !== undefined) {
-      text = text.slice(match.index + match[0].length);
-      break;
+export function extractIngredientsSection(rawText: string): string {
+  const matches = [...rawText.matchAll(LABEL_HEADER_PATTERN)];
+
+  let text = rawText;
+  if (matches.length > 0) {
+    const first = matches[0];
+    const beforeFirst = rawText.slice(0, first.index ?? 0);
+
+    if (looksLikeIngredientsList(beforeFirst)) {
+      // Metin zaten bir başlık olmadan doğrudan madde listesiyle başlıyor; bulunan işaret
+      // aslında SONRAKİ bir dilin başlığı. O yüzden işaretten ÖNCEKİ kısmı (gerçek listeyi) alıyoruz.
+      text = beforeFirst;
+    } else {
+      const start = (first.index ?? 0) + first[0].length;
+      const end = matches.length > 1 ? matches[1].index : rawText.length;
+      text = rawText.slice(start, end);
     }
   }
 

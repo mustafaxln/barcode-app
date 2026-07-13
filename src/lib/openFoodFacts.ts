@@ -123,11 +123,19 @@ export async function fetchProductFromOpenFoodFacts(barcode: string): Promise<Pr
   const url = `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json?lc=tr&fields=${OFF_FIELDS}`;
 
   const response = await fetch(url);
-  if (!response.ok) {
+
+  // OFF, bulunamayan bazı barkodlarda HTTP 200 değil 404 dönebiliyor, ama gövdesi yine de
+  // geçerli `{ status: 0, status_verbose: "product not found" }` JSON'u içeriyor. Bu yüzden
+  // sadece HTTP durum koduna bakıp direkt hata fırlatmıyoruz; önce gövdeyi okumayı deneyip
+  // asıl "bulundu mu" kararını `status` alanına göre veriyoruz. Gövde hiç JSON değilse
+  // (örn. 500/502 hata sayfası) bu gerçek bir hata sayılır.
+  let data: OffResponse;
+  try {
+    data = (await response.json()) as OffResponse;
+  } catch {
     throw new Error(`Open Food Facts isteği başarısız: HTTP ${response.status}`);
   }
 
-  const data = (await response.json()) as OffResponse;
   if (data.status !== 1 || !data.product) {
     return null;
   }
