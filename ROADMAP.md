@@ -122,13 +122,13 @@ Bu mantık `src/lib/scoring.ts` içinde, framework'ten bağımsız düz TypeScri
 - [x] Ürün bulunamadı durumunda `ProductPage`'de "Bu Ürünü Sen Ekle" linki ile `/urun-ekle/:barcode`'a yönlendirme (form Blok 7'de)
 - [ ] ⏳ **Kullanıcı doğrulaması gerekiyor:** Gerçek tarayıcıda birkaç barkod denenip OFF'tan verinin doğru geldiğinin teyit edilmesi (sandbox'ta headless tarayıcı yok, sadece API/kod seviyesinde doğrulandı)
 
-### Blok 4 — Ürün Detay Ekranı (≈2 saat)
-- [ ] Ürün adı, marka, görsel
-- [ ] İçindekiler listesi (ham metni virgülle ayrıştırıp madde madde gösterme)
-- [ ] Besin değerleri tablosu (100g bazında, renkli yüksek/orta/düşük etiketleriyle)
-- [ ] Sorumluluk reddi metni bu ekranda görünür
+### Blok 4 — Ürün Detay Ekranı (≈2 saat) — ✅ Tamamlandı
+- [x] Ürün adı, marka, görsel
+- [x] İçindekiler listesi (`parseIngredients` — parantez/köşeli parantez derinliğini takip ederek üst seviye virgüllerden bölen ayrıştırıcı, numaralı liste olarak gösteriliyor)
+- [x] Besin değerleri tablosu (100g bazında; yağ/doymuş yağ/şeker/tuz için UK FSA trafik ışığı eşiklerine göre Düşük/Orta/Yüksek renkli rozet)
+- [x] Sorumluluk reddi metni (`DisclaimerNote` bileşeni — tekrar kullanılabilir, onboarding/Hakkında'da da kullanılacak) her ürün ekranında görünür
 
-**Gün 1 sonu çıktı:** Gerçek bir barkodu okutup ürün bilgisini gösteren, Vercel'de canlı bir demo.
+**Gün 1 sonu çıktı — ✅ ULAŞILDI (Vercel deploy'u hariç, kullanıcı aksiyonu bekliyor):** Barkod tara (kamera veya elle) → OFF/Supabase'ten veri çek → ürün adı, marka, görsel, içindekiler listesi, renkli besin değeri tablosu ve sorumluluk reddi ile tam bir ürün detay ekranı gösteriliyor. Yerel ortamda (`npm run dev`) uçtan uca çalışıyor; Vercel'e taşınması Supabase/Vercel hesap bilgileri geldiğinde birkaç dakika sürecek.
 
 ---
 
