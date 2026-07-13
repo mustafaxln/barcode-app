@@ -100,12 +100,13 @@ Bu mantık `src/lib/scoring.ts` içinde, framework'ten bağımsız düz TypeScri
 
 ## GÜN 1 — Çekirdek Akış: Tara → Ürünü Gör
 
-### Blok 1 — Kurulum (≈1 saat)
-- [ ] Vite + React + TypeScript scaffold
-- [ ] Tailwind CSS kurulumu, temel renk paleti (yeşil/kırmızı/sarı skor renkleri dahil)
-- [ ] Supabase projesi oluşturma + `products`, `manual_submissions` tablolarının migration'ı
-- [ ] `.env` (Supabase URL/anon key), Vercel projesi bağlama, ilk boş deploy
-- [ ] Git init + ilk commit
+### Blok 1 — Kurulum (≈1 saat) — ✅ Kod tarafı tamamlandı, 2 adım kullanıcı aksiyonu bekliyor
+- [x] Vite + React + TypeScript scaffold
+- [x] Tailwind CSS (v4) kurulumu, temel renk paleti (brand/warn/danger renkleri `src/index.css` içinde)
+- [x] `supabase/migrations/0001_init.sql` yazıldı (`products`, `manual_submissions` tabloları + RLS)
+- [ ] ⏳ **Kullanıcı aksiyonu:** Supabase projesi oluşturma + migration'ı çalıştırma + `.env` doldurma
+- [ ] ⏳ **Kullanıcı aksiyonu:** Vercel projesi bağlama, ilk deploy
+- [x] Git init + ilk commit (2 commit: kurulum + gitignore düzeltmesi)
 
 ### Blok 2 — Barkod Tarama Ekranı (≈2 saat)
 - [ ] Kamera izni akışı + `@zxing/library` ile canlı barkod okuma
