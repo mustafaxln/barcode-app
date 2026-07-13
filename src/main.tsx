@@ -9,7 +9,10 @@ import './index.css';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000,
+      // Not: Önceden 5 dakikaydı; aynı barkodu tekrar açtığınızda eski (test/geliştirme
+      // sırasında düzeltilmiş) sonucun ekranda kalmasına sebep oluyordu. Ürün verisi zaten
+      // nadiren değişiyor, kısa bir cache yine de tekrar taramalarda gereksiz isteği önlüyor.
+      staleTime: 60 * 1000,
       retry: 1,
     },
   },

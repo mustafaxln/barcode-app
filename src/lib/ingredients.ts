@@ -98,7 +98,20 @@ export function parseIngredients(ingredientsText: string | undefined): string[] 
   }
   if (current.trim()) items.push(current.trim());
 
-  return items
-    .map((item) => item.replaceAll(DECIMAL_PLACEHOLDER, ','))
-    .filter(Boolean);
+  const restored = items.map((item) => item.replaceAll(DECIMAL_PLACEHOLDER, ',')).filter(Boolean);
+
+  // Bazı OFF metinlerinde parantezden ÖNCE de fazladan virgül oluyor ("bitkisel yağlar , (palm,
+  // ayçiçek, kanola)"), bu da parantezi ayrı bir "madde" gibi böler. Sadece parantez/köşeli
+  // parantez içeriğinden oluşan bir öğeyi, önceki maddenin açıklaması sayıp onunla birleştiriyoruz.
+  const merged: string[] = [];
+  for (const item of restored) {
+    const isParenOnly = /^[([].*[)\]]\.?$/.test(item);
+    if (isParenOnly && merged.length > 0) {
+      merged[merged.length - 1] = `${merged[merged.length - 1]} ${item}`;
+    } else {
+      merged.push(item);
+    }
+  }
+
+  return merged;
 }
