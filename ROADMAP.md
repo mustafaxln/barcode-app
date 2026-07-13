@@ -14,7 +14,7 @@
 Geriye, tamamen bizim kontrolümüzde olan ve zamanında çözmemiz gereken teknik riskler kaldı:
 
 1. **Open Food Facts CORS:** Tarayıcıdan direkt istek atılabiliyor mu, yoksa Vercel serverless proxy gerekecek mi? → Blok 3'te ilk saatte test edilip netleşecek.
-2. **Capacitor WebView'da kamera izni/erişimi:** Web'de `getUserMedia` ile çalışan barkod okuma, Android WebView içinde de sorunsuz çalışmalı; gerçek cihazda test edilecek (Blok 9). Sorun çıkarsa native `@capacitor-mlkit/barcode-scanning` plugin'ine geçiş yedek plan olarak duruyor (Faz Sonrası Backlog'da zaten var).
+2. **Capacitor WebView'da kamera izni/erişimi — ✅ Kod seviyesinde doğrulandı:** `@capacitor/android` paketinin kendi `BridgeWebChromeClient.java` kaynağını inceledim — `onPermissionRequest` metodu zaten JS'ten gelen kamera (`VIDEO_CAPTURE`) isteklerini yakalayıp Android'in runtime izin diyaloğunu otomatik açıyor ve onaylanırsa WebView'a izni veriyor. Yani ekstra native kod yazmamıza **gerek yok**, sadece manifest'e `CAMERA` iznini eklemek yeterli (Blok 9'da yapıldı). Yine de gerçek cihazda bir kez denenmesi öneriliyor; sorun çıkarsa native `@capacitor-mlkit/barcode-scanning` plugin'ine geçiş yedek plan olarak duruyor (Faz Sonrası Backlog'da zaten var).
 3. **Keystore / imzalama:** Android AAB'yi imzalamak için bir keystore dosyası üretilecek. Bu dosya **ileride uygulama güncellemesi yapılabilmesi için kritik** — teslimat paketine keystore + şifresi + "bu dosyayı kaybetmeyin, kaybederseniz yeni güncelleme farklı bir uygulama olarak görünür" notu eklenecek.
 4. **Auth kararı:** Henüz netleşmedi, v1'de localStorage öneriliyor (hız için) — aşağıda hâlâ açık, varsayılan olarak bu şekilde ilerleyeceğiz, itirazınız olursa değiştiririz.
 
@@ -162,11 +162,16 @@ Bu mantık `src/lib/scoring.ts` içinde, framework'ten bağımsız düz TypeScri
 - [x] `TESTING.md` — gerçek cihazda geçilmesi gereken manuel test checklist'i yazıldı (kamera/tarama gibi sandbox'ta test edilemeyen akışlar için)
 - [ ] ⏳ **Kullanıcı aksiyonu bekliyor:** Vercel production deploy + Supabase RLS son kontrol (Blok 1'deki hesap kurulumuyla birlikte yapılacak)
 
-### Blok 9 — Capacitor ile Android'e Sarma (≈1.5-2 saat)
-- [ ] `@capacitor/core` + `@capacitor/android` kurulumu, `npx cap init`, `npx cap add android`
-- [ ] Kamera izni Android manifest'e ekleme (`android.permission.CAMERA`)
-- [ ] App ikonu + splash screen
-- [ ] `npx cap sync` + Android Studio/Gradle ile lokal build, emülatör veya gerçek cihazda barkod tarama testi (WebView'da kamera erişimi kritik test noktası)
+### Blok 9 — Capacitor ile Android'e Sarma (≈1.5-2 saat) — 🟡 Kod/config tamamlandı, gerçek build kullanıcı aksiyonu bekliyor
+- [x] `@capacitor/core` + `@capacitor/android` + `@capacitor/cli` kurulumu
+- [x] `npx cap init` — **Not:** `capacitor.config.ts` yerine `capacitor.config.json` kullanıldı çünkü kurulan TypeScript 7 (henüz çok yeni bir sürüm) ile `@capacitor/cli`'nin TS config parser'ı arasında bir uyumsuzluk çıktı (`ts.ModuleKind` undefined hatası); JSON format bu sorunu tamamen ortadan kaldırıyor ve işlevsel olarak birebir aynı
+- [x] `npx cap add android` — native Android projesi `android/` klasöründe oluşturuldu
+- [x] Kamera izni manifest'e eklendi (`android.permission.CAMERA` + `uses-feature` `required="false"`, kamerasız cihazlarda da elle giriş fallback'i çalışabilsin diye)
+- [x] **Önemli mimari doğrulama:** `@capacitor/android` paketinin kaynak kodunu inceleyip, WebView'daki `getUserMedia` kamera isteklerinin Capacitor tarafından otomatik native izin akışına bağlandığını doğruladım (bkz. yukarıdaki risk notu) — ekstra native kod gerekmiyor
+- [x] **Önemli düzeltme:** `android/` klasörü başta `.gitignore`'daydı (manifest'teki kamera izni özelleştirmesi kaybolurdu) — bunu düzelttim, artık `android/` commit ediliyor, sadece Gradle'ın ürettiği geçici build dosyaları (`build/`, `.gradle/`, kopyalanan web assets) hariç tutuluyor
+- [x] `npm run cap:sync` script'i eklendi (`vite build && npx cap sync android`)
+- [ ] App ikonu/splash screen: şu an Capacitor'ün varsayılan ikonu duruyor, marka özelleştirmesi Blok 10'daki teslimat/store görselleri hazırlığına bırakıldı (fonksiyonel test için engel değil)
+- [ ] ⏳ **Kullanıcı aksiyonu bekliyor (bu sandbox'ta Java/Android SDK kurulu değil):** `npm run cap:sync` sonrası Android Studio ile açıp gerçek cihaz/emülatörde barkod tarama testi + APK/AAB build alma
 
 ### Blok 10 — Teslimat Paketinin Hazırlanması (Play Console'a biz girmiyoruz)
 - [ ] Keystore oluşturma, imzalı **AAB** (ve ayrıca test için kolay kurulan bir **APK**) build alma
