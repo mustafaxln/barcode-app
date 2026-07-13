@@ -8,6 +8,7 @@ const OFF_FIELDS = [
   'ingredients_text',
   'ingredients_text_tr',
   'ingredients_text_en',
+  'ingredients',
   'nutriments',
   'additives_tags',
   'allergens_tags',
@@ -25,6 +26,11 @@ interface OffNutriments {
   salt_100g?: number;
 }
 
+interface OffIngredientNode {
+  text?: string;
+  id?: string;
+}
+
 interface OffProduct {
   code?: string;
   product_name?: string;
@@ -33,6 +39,7 @@ interface OffProduct {
   ingredients_text?: string;
   ingredients_text_tr?: string;
   ingredients_text_en?: string;
+  ingredients?: OffIngredientNode[];
   nutriments?: OffNutriments;
   additives_tags?: string[];
   allergens_tags?: string[];
@@ -56,8 +63,24 @@ function stripLocalePrefix(tag: string): string {
  * `ingredients_text` alanı bu orijinal dili döndürür. Türkçe çevirisi (`ingredients_text_tr`)
  * genelde yoktur; bu durumda İngilizce çeviri, orijinal dilden çok daha anlaşılır bir fallback'tir.
  */
+/**
+ * Bazı ürünlerde (örn. bazı Heinz Ketçap girişleri) hiçbir dilde düz `ingredients_text` girilmemiş
+ * olabilir, ama OFF katkıda bulunanların ayrıştırdığı yapılandırılmış `ingredients` listesi (her
+ * maddenin adı) mevcut olabilir. Düz metin hiç yoksa bu listeden son çare bir liste oluşturuyoruz.
+ */
+function buildIngredientsTextFromStructured(nodes: OffIngredientNode[] | undefined): string | undefined {
+  if (!nodes || nodes.length === 0) return undefined;
+  const names = nodes.map((node) => node.text?.trim()).filter((text): text is string => Boolean(text));
+  return names.length > 0 ? names.join(', ') : undefined;
+}
+
 function pickIngredientsText(raw: OffProduct): string | undefined {
-  return raw.ingredients_text_tr?.trim() || raw.ingredients_text_en?.trim() || raw.ingredients_text?.trim();
+  return (
+    raw.ingredients_text_tr?.trim() ||
+    raw.ingredients_text_en?.trim() ||
+    raw.ingredients_text?.trim() ||
+    buildIngredientsTextFromStructured(raw.ingredients)
+  );
 }
 
 function mapOffProductToProduct(barcode: string, raw: OffProduct): Product {
