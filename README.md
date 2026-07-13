@@ -42,4 +42,5 @@ supabase/
 └── migrations/  SQL migration dosyaları
 ```
 
-Detaylı faz planı ve mimari kararlar için `ROADMAP.md`.
+Detaylı faz planı ve mimari kararlar için `ROADMAP.md`. Gerçek cihazda yapılması gereken manuel
+test adımları için `TESTING.md`.

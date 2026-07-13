@@ -147,10 +147,10 @@ Bu mantık `src/lib/scoring.ts` içinde, framework'ten bağımsız düz TypeScri
 - [x] Katkı maddesi kartları (`AdditivesList` + `src/lib/additives.ts` — ~20 E-kodluk referans liste, dikkat gerektirenler sarı vurgulu)
 - [x] **Gerçek veriyle doğrulandı:** Nutella örneğiyle 3 senaryo test edildi (hassasiyet yok → 74 puan "Uygun"; fındık alerjisi seçili → 0 puan "Uygun Değil" sert engelleme; vegan+şeker takibi → 17 puan "Uygun Değil") — matematik ve mantık beklendiği gibi çalışıyor
 
-### Blok 7 — Geçmiş, Favoriler, Manuel Ekleme (≈1.5 saat)
-- [ ] Tarama geçmişi: her taramada localStorage'a ekleme, geçmiş ekranı (offline çalışır, ekstra iş yok)
-- [ ] Favoriler: toggle + liste ekranı (localStorage)
-- [ ] Manuel ürün ekleme formu → `manual_submissions` tablosuna insert
+### Blok 7 — Geçmiş, Favoriler, Manuel Ekleme (≈1.5 saat) — ✅ Tamamlandı
+- [x] Tarama geçmişi: `ScanPage`'den gelen taramalar (`fromScan` işareti) otomatik localStorage'a kaydediliyor; Geçmiş/Favoriler listesinden tekrar açmak yeni kayıt oluşturmuyor. Geçmiş ekranı tarih sıralı, skor rozetli, tamamen offline çalışıyor
+- [x] Favoriler: ürün detayında kalp butonu ile toggle + `/favoriler` liste ekranı (kaldır butonu dahil)
+- [x] Manuel ürün ekleme formu: ad, marka, içindekiler, görsel URL, 8 besin değeri alanı → `manual_submissions` tablosuna insert (Supabase henüz kurulmadıysa hata mesajı gösteriyor, uygulamayı kırmıyor)
 
 ### Blok 8 — Web Cilalama ve Prod Deploy (≈1 saat)
 - [ ] Mobil tarayıcı / responsive kontrolü (gerçek kullanım senaryosu telefon tarayıcısı + sonra Capacitor)

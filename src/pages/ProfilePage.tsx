@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { ALLERGEN_OPTIONS } from '../lib/sensitivities';
 import { useSensitivities } from '../hooks/useSensitivities';
 import { ToggleChip } from '../components/ToggleChip';
@@ -83,6 +84,9 @@ export function ProfilePage() {
       </section>
 
       <DisclaimerNote />
+      <Link to="/hakkinda" className="text-center text-xs font-medium text-neutral-400 hover:underline">
+        Hakkında ve Sorumluluk Reddi →
+      </Link>
     </div>
   );
 }

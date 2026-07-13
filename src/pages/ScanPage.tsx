@@ -83,8 +83,13 @@ export function ScanPage() {
       </div>
 
       <div className="relative aspect-[4/3] w-full max-w-sm overflow-hidden rounded-2xl bg-black">
-        {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-        <video ref={videoRef} className="h-full w-full object-cover" muted playsInline />
+        <video
+          ref={videoRef}
+          aria-label="Kamera görüntüsü"
+          className="h-full w-full object-cover"
+          muted
+          playsInline
+        />
 
         {status === 'scanning' && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
