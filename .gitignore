@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Capacitor / Android (Blok 9'da eklenecek)
+android/
+ios/
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+
+# Keystore (teslimat paketine ayrı ve güvenli şekilde eklenecek, repoya asla girmeyecek)
+*.keystore
+*.jks
