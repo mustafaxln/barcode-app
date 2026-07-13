@@ -1,6 +1,9 @@
-import { Link, useParams } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { useProduct } from '../hooks/useProduct';
 import { useSensitivities } from '../hooks/useSensitivities';
+import { useHistory } from '../hooks/useHistory';
+import { useFavorites } from '../hooks/useFavorites';
 import { calculateSuitabilityScore } from '../lib/scoring';
 import { IngredientsList } from '../components/IngredientsList';
 import { NutritionTable } from '../components/NutritionTable';
@@ -11,8 +14,34 @@ import { AdditivesList } from '../components/AdditivesList';
 
 export function ProductPage() {
   const { barcode } = useParams<{ barcode: string }>();
+  const location = useLocation();
+  const fromScan = Boolean((location.state as { fromScan?: boolean } | null)?.fromScan);
+
   const { data, isLoading, isError } = useProduct(barcode);
   const { sensitivities } = useSensitivities();
+  const { addEntry } = useHistory();
+  const { toggle: toggleFavorite, isFavorite } = useFavorites();
+  const recordedRef = useRef<string | null>(null);
+
+  const product = data?.status === 'found' ? data.product : null;
+  const scoreResult = product ? calculateSuitabilityScore(product, sensitivities) : null;
+
+  // Sadece Blok 7'de eklenen fromScan işareti geldiğinde (yani gerçek bir tarama/manuel arama
+  // sonucuysa) geçmişe kaydediyoruz — Geçmiş/Favoriler listesinden tekrar açmak yeni kayıt oluşturmaz.
+  useEffect(() => {
+    if (!fromScan || !product || !scoreResult) return;
+    if (recordedRef.current === product.barcode) return;
+    recordedRef.current = product.barcode;
+    addEntry({
+      barcode: product.barcode,
+      name: product.name,
+      brand: product.brand,
+      imageUrl: product.imageUrl,
+      score: scoreResult.score,
+      label: scoreResult.label,
+      scannedAt: new Date().toISOString(),
+    });
+  }, [fromScan, product, scoreResult, addEntry]);
 
   if (isLoading) {
     return (
@@ -59,9 +88,9 @@ export function ProductPage() {
     );
   }
 
-  if (data?.status !== 'found') return null;
-  const product = data.product;
-  const scoreResult = calculateSuitabilityScore(product, sensitivities);
+  if (!product || !scoreResult || !data || data.status !== 'found') return null;
+
+  const isFav = isFavorite(product.barcode);
 
   return (
     <div className="mx-auto flex max-w-md flex-col items-center gap-6 px-4 py-8">
@@ -80,6 +109,24 @@ export function ProductPage() {
         <p className="rounded-full bg-neutral-100 px-3 py-1 text-xs text-neutral-400">
           Kaynak: {data.source === 'cache' ? 'Önbellek' : 'Open Food Facts'} · Barkod: {product.barcode}
         </p>
+        <button
+          type="button"
+          onClick={() =>
+            toggleFavorite({
+              barcode: product.barcode,
+              name: product.name,
+              brand: product.brand,
+              imageUrl: product.imageUrl,
+            })
+          }
+          className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
+            isFav
+              ? 'border-danger-500 bg-danger-100 text-danger-500'
+              : 'border-neutral-200 text-neutral-500 hover:border-danger-300'
+          }`}
+        >
+          {isFav ? '♥ Favorilerde' : '♡ Favorilere Ekle'}
+        </button>
       </div>
 
       <AllergenWarningBanner matchedAllergens={scoreResult.matchedAllergens} />

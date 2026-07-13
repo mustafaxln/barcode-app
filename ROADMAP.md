@@ -140,11 +140,12 @@ Bu mantık `src/lib/scoring.ts` içinde, framework'ten bağımsız düz TypeScri
 - [x] Profil ekranından (`/profil`) sonradan düzenlenebiliyor, değişiklik anında localStorage'a yazılıyor
 - [x] **Önemli tasarım kararı:** Alerjen id'leri Open Food Facts'in `allergens_tags` taksonomisiyle bire bir aynı tutuldu (`gluten`, `milk`, `nuts`...) — Blok 6'daki eşleştirme mantığı ekstra çeviri tablosuna gerek kalmadan doğrudan küme kesişimiyle çalışacak
 
-### Blok 6 — Alerjen Uyarısı + Uygunluk Skoru (≈2 saat)
-- [ ] `scoring.ts`: yukarıdaki skor mantığının implementasyonu
-- [ ] Ürün detayında büyük alerjen uyarı banner'ı
-- [ ] Skor rozeti + "Neden bu skor?" açılır detay
-- [ ] Katkı maddesi kartları (kısa açıklama, hardcoded küçük referans liste)
+### Blok 6 — Alerjen Uyarısı + Uygunluk Skoru (≈2 saat) — ✅ Tamamlandı
+- [x] `src/lib/scoring.ts`: skor mantığının implementasyonu (alerjen sert engelleme → diyet uyumu → besin değeri puanı → katkı maddesi puanı)
+- [x] Ürün detayında büyük, kırmızı alerjen uyarı banner'ı (`AllergenWarningBanner`)
+- [x] Skor rozeti + "Neden bu skor?" açılır detay listesi (`ScoreBadge`)
+- [x] Katkı maddesi kartları (`AdditivesList` + `src/lib/additives.ts` — ~20 E-kodluk referans liste, dikkat gerektirenler sarı vurgulu)
+- [x] **Gerçek veriyle doğrulandı:** Nutella örneğiyle 3 senaryo test edildi (hassasiyet yok → 74 puan "Uygun"; fındık alerjisi seçili → 0 puan "Uygun Değil" sert engelleme; vegan+şeker takibi → 17 puan "Uygun Değil") — matematik ve mantık beklendiği gibi çalışıyor
 
 ### Blok 7 — Geçmiş, Favoriler, Manuel Ekleme (≈1.5 saat)
 - [ ] Tarama geçmişi: her taramada localStorage'a ekleme, geçmiş ekranı (offline çalışır, ekstra iş yok)

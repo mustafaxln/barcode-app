@@ -34,7 +34,7 @@ export function ScanPage() {
         if (cancelled) return;
         if (result) {
           reader.reset();
-          navigate(`/urun/${result.getText()}`);
+          navigate(`/urun/${result.getText()}`, { state: { fromScan: true } });
           return;
         }
         // NotFoundException her karede barkod bulunamayınca fırlatılır, bu normal akış — hata değil.
@@ -69,7 +69,7 @@ export function ScanPage() {
     event.preventDefault();
     const trimmed = manualBarcode.trim();
     if (trimmed.length >= 6) {
-      navigate(`/urun/${trimmed}`);
+      navigate(`/urun/${trimmed}`, { state: { fromScan: true } });
     }
   };
 
