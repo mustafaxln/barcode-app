@@ -108,10 +108,12 @@ Bu mantık `src/lib/scoring.ts` içinde, framework'ten bağımsız düz TypeScri
 - [ ] ⏳ **Kullanıcı aksiyonu:** Vercel projesi bağlama, ilk deploy
 - [x] Git init + ilk commit (2 commit: kurulum + gitignore düzeltmesi)
 
-### Blok 2 — Barkod Tarama Ekranı (≈2 saat)
-- [ ] Kamera izni akışı + `@zxing/library` ile canlı barkod okuma
-- [ ] Manuel barkod girişi (kamera çalışmazsa fallback + hızlı test için pratik)
-- [ ] Tarama UI: kamera görüntüsü + hedef overlay + yükleniyor/hata durumları
+### Blok 2 — Barkod Tarama Ekranı (≈2 saat) — ✅ Tamamlandı
+- [x] Kamera izni akışı + `@zxing/library` (`BrowserMultiFormatReader`) ile canlı barkod okuma (EAN-13/EAN-8/UPC-A/UPC-E/CODE-128 formatlarına odaklanıldı)
+- [x] Manuel barkod girişi (kamera çalışmazsa fallback + hızlı test için pratik)
+- [x] Tarama UI: kamera görüntüsü + hedef overlay + yükleniyor/hata durumları (izin reddi, kamera bulunamadı, genel hata mesajları ayrıştırıldı)
+- [x] Barkod okunduğunda `/urun/:barcode` rotasına yönlendirme çalışıyor (veri çekme Blok 3'te)
+- [ ] ⏳ **Kullanıcı doğrulaması gerekiyor:** Gerçek bir tarayıcı/telefonda kamera izninin ve taramanın gerçekten çalıştığının test edilmesi (sandbox ortamında kamera erişimi test edilemiyor)
 
 ### Blok 3 — Ürün Verisi Çekme (≈2 saat)
 - [ ] `openFoodFacts.ts`: `GET https://world.openfoodfacts.org/api/v2/product/{barcode}.json` client + kendi tipimize mapper
