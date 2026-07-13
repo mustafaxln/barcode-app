@@ -1,12 +1,18 @@
 import { Link, useParams } from 'react-router-dom';
 import { useProduct } from '../hooks/useProduct';
+import { useSensitivities } from '../hooks/useSensitivities';
+import { calculateSuitabilityScore } from '../lib/scoring';
 import { IngredientsList } from '../components/IngredientsList';
 import { NutritionTable } from '../components/NutritionTable';
 import { DisclaimerNote } from '../components/DisclaimerNote';
+import { ScoreBadge } from '../components/ScoreBadge';
+import { AllergenWarningBanner } from '../components/AllergenWarningBanner';
+import { AdditivesList } from '../components/AdditivesList';
 
 export function ProductPage() {
   const { barcode } = useParams<{ barcode: string }>();
   const { data, isLoading, isError } = useProduct(barcode);
+  const { sensitivities } = useSensitivities();
 
   if (isLoading) {
     return (
@@ -55,6 +61,7 @@ export function ProductPage() {
 
   if (data?.status !== 'found') return null;
   const product = data.product;
+  const scoreResult = calculateSuitabilityScore(product, sensitivities);
 
   return (
     <div className="mx-auto flex max-w-md flex-col items-center gap-6 px-4 py-8">
@@ -75,6 +82,9 @@ export function ProductPage() {
         </p>
       </div>
 
+      <AllergenWarningBanner matchedAllergens={scoreResult.matchedAllergens} />
+      <ScoreBadge result={scoreResult} />
+
       <section className="w-full">
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-neutral-400">
           İçindekiler
@@ -89,11 +99,11 @@ export function ProductPage() {
         <NutritionTable nutrition={product.nutrition} />
       </section>
 
-      <section className="w-full text-center text-sm text-neutral-500">
-        <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-neutral-400">
-          Alerjen &amp; Uygunluk
+      <section className="w-full">
+        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-neutral-400">
+          Katkı Maddeleri
         </h2>
-        <p>Alerjen uyarıları ve kişisel uygunluk skoru Gün 2 / Blok 5-6'da eklenecek.</p>
+        <AdditivesList additivesTags={product.additivesTags} />
       </section>
 
       <DisclaimerNote />

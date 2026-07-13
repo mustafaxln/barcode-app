@@ -134,10 +134,11 @@ Bu mantık `src/lib/scoring.ts` içinde, framework'ten bağımsız düz TypeScri
 
 ## GÜN 2 — Kişiselleştirme, Skor, Capacitor, Play Console
 
-### Blok 5 — Hassasiyet Profili (≈1 saat)
-- [ ] Basit seçim ekranı: alerjenler (çoklu seçim), vegan/vejetaryen, glutensiz/laktozsuz, şeker/tuz/yağ takibi
-- [ ] localStorage'a kayıt (`sensitivities.ts` helper)
-- [ ] Profil/ayarlar ekranından sonradan düzenleme
+### Blok 5 — Hassasiyet Profili (≈1 saat) — ✅ Tamamlandı
+- [x] Basit seçim ekranı: 12 alerjen (çoklu seçim, chip'ler), vegan/vejetaryen, glutensiz/laktozsuz diyet, şeker/tuz/yağ takibi
+- [x] `src/lib/sensitivities.ts` — localStorage'a kayıt/okuma + `useSensitivities` hook'u
+- [x] Profil ekranından (`/profil`) sonradan düzenlenebiliyor, değişiklik anında localStorage'a yazılıyor
+- [x] **Önemli tasarım kararı:** Alerjen id'leri Open Food Facts'in `allergens_tags` taksonomisiyle bire bir aynı tutuldu (`gluten`, `milk`, `nuts`...) — Blok 6'daki eşleştirme mantığı ekstra çeviri tablosuna gerek kalmadan doğrudan küme kesişimiyle çalışacak
 
 ### Blok 6 — Alerjen Uyarısı + Uygunluk Skoru (≈2 saat)
 - [ ] `scoring.ts`: yukarıdaki skor mantığının implementasyonu
