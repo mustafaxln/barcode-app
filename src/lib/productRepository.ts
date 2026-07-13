@@ -49,6 +49,7 @@ function productToRow(product: Product): ProductRow {
 }
 
 async function getCachedProduct(barcode: string): Promise<Product | null> {
+  if (!supabase) return null;
   try {
     const { data, error } = await supabase
       .from('products')
@@ -68,6 +69,7 @@ async function getCachedProduct(barcode: string): Promise<Product | null> {
 }
 
 async function cacheProduct(product: Product): Promise<void> {
+  if (!supabase) return;
   try {
     const { error } = await supabase.from('products').upsert(productToRow(product));
     if (error) {

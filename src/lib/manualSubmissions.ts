@@ -13,6 +13,12 @@ export interface ManualSubmissionInput {
 export async function submitManualProduct(
   input: ManualSubmissionInput
 ): Promise<{ success: boolean; error?: string }> {
+  if (!supabase) {
+    return {
+      success: false,
+      error: 'Supabase henüz yapılandırılmadı, bu ürün şu an kaydedilemiyor. Lütfen daha sonra tekrar deneyin.',
+    };
+  }
   try {
     const { error } = await supabase.from('manual_submissions').insert({
       barcode: input.barcode,
