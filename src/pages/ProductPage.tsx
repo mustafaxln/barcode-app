@@ -1,5 +1,8 @@
 import { Link, useParams } from 'react-router-dom';
 import { useProduct } from '../hooks/useProduct';
+import { IngredientsList } from '../components/IngredientsList';
+import { NutritionTable } from '../components/NutritionTable';
+import { DisclaimerNote } from '../components/DisclaimerNote';
 
 export function ProductPage() {
   const { barcode } = useParams<{ barcode: string }>();
@@ -54,24 +57,46 @@ export function ProductPage() {
   const product = data.product;
 
   return (
-    <div className="flex flex-col items-center gap-4 px-4 py-10 text-center">
-      {product.imageUrl && (
-        <img
-          src={product.imageUrl}
-          alt={product.name}
-          className="h-32 w-32 rounded-xl object-contain"
-        />
-      )}
-      <div>
-        <h1 className="text-2xl font-bold text-neutral-900">{product.name}</h1>
-        {product.brand && <p className="text-sm text-neutral-500">{product.brand}</p>}
+    <div className="mx-auto flex max-w-md flex-col items-center gap-6 px-4 py-8">
+      <div className="flex flex-col items-center gap-3 text-center">
+        {product.imageUrl && (
+          <img
+            src={product.imageUrl}
+            alt={product.name}
+            className="h-32 w-32 rounded-xl object-contain"
+          />
+        )}
+        <div>
+          <h1 className="text-2xl font-bold text-neutral-900">{product.name}</h1>
+          {product.brand && <p className="text-sm text-neutral-500">{product.brand}</p>}
+        </div>
+        <p className="rounded-full bg-neutral-100 px-3 py-1 text-xs text-neutral-400">
+          Kaynak: {data.source === 'cache' ? 'Önbellek' : 'Open Food Facts'} · Barkod: {product.barcode}
+        </p>
       </div>
-      <p className="rounded-full bg-neutral-100 px-3 py-1 text-xs text-neutral-400">
-        Kaynak: {data.source === 'cache' ? 'Önbellek' : 'Open Food Facts'} · Barkod: {product.barcode}
-      </p>
-      <p className="max-w-sm text-sm text-neutral-500">
-        İçindekiler listesi, besin değerleri tablosu ve uygunluk skoru Blok 4-6'da eklenecek.
-      </p>
+
+      <section className="w-full">
+        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-neutral-400">
+          İçindekiler
+        </h2>
+        <IngredientsList ingredientsText={product.ingredientsText} />
+      </section>
+
+      <section className="w-full">
+        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-neutral-400">
+          Besin Değerleri
+        </h2>
+        <NutritionTable nutrition={product.nutrition} />
+      </section>
+
+      <section className="w-full text-center text-sm text-neutral-500">
+        <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-neutral-400">
+          Alerjen &amp; Uygunluk
+        </h2>
+        <p>Alerjen uyarıları ve kişisel uygunluk skoru Gün 2 / Blok 5-6'da eklenecek.</p>
+      </section>
+
+      <DisclaimerNote />
     </div>
   );
 }

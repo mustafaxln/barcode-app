@@ -115,11 +115,12 @@ Bu mantık `src/lib/scoring.ts` içinde, framework'ten bağımsız düz TypeScri
 - [x] Barkod okunduğunda `/urun/:barcode` rotasına yönlendirme çalışıyor (veri çekme Blok 3'te)
 - [ ] ⏳ **Kullanıcı doğrulaması gerekiyor:** Gerçek bir tarayıcı/telefonda kamera izninin ve taramanın gerçekten çalıştığının test edilmesi (sandbox ortamında kamera erişimi test edilemiyor)
 
-### Blok 3 — Ürün Verisi Çekme (≈2 saat)
-- [ ] `openFoodFacts.ts`: `GET https://world.openfoodfacts.org/api/v2/product/{barcode}.json` client + kendi tipimize mapper
-- [ ] CORS testi (tarayıcıdan direkt istek çalışıyor mu) — çalışmazsa Vercel Serverless Function ile basit proxy (`/api/product/[barcode].ts`)
-- [ ] Akış: önce Supabase `products`'ta ara → yoksa OFF'tan çek → bulunursa Supabase'e cache yaz
-- [ ] Ürün bulunamadı durumunda "Manuel Ekle" ekranına yönlendirme (Blok 6)
+### Blok 3 — Ürün Verisi Çekme (≈2 saat) — ✅ Tamamlandı
+- [x] `openFoodFacts.ts`: OFF v2 API client + kendi `Product` tipimize mapper (besin değerleri, katkı maddesi/alerjen etiketleri dahil)
+- [x] **CORS testi yapıldı ve OLUMLU çıktı** — OFF API `access-control-allow-origin: *` döndürüyor, tarayıcıdan direkt istek atılabiliyor. Vercel proxy'ye **gerek yok**, bir risk daha kapandı.
+- [x] Akış (`productRepository.ts`): önce Supabase `products`'ta ara → yoksa OFF'tan çek → bulunursa Supabase'e cache yaz (Supabase henüz kurulmadıysa hata fırlatmadan, sadece uyarı loglayıp OFF ile devam ediyor)
+- [x] Ürün bulunamadı durumunda `ProductPage`'de "Bu Ürünü Sen Ekle" linki ile `/urun-ekle/:barcode`'a yönlendirme (form Blok 7'de)
+- [ ] ⏳ **Kullanıcı doğrulaması gerekiyor:** Gerçek tarayıcıda birkaç barkod denenip OFF'tan verinin doğru geldiğinin teyit edilmesi (sandbox'ta headless tarayıcı yok, sadece API/kod seviyesinde doğrulandı)
 
 ### Blok 4 — Ürün Detay Ekranı (≈2 saat)
 - [ ] Ürün adı, marka, görsel
