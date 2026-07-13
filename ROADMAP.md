@@ -173,15 +173,17 @@ Bu mantık `src/lib/scoring.ts` içinde, framework'ten bağımsız düz TypeScri
 - [ ] App ikonu/splash screen: şu an Capacitor'ün varsayılan ikonu duruyor, marka özelleştirmesi Blok 10'daki teslimat/store görselleri hazırlığına bırakıldı (fonksiyonel test için engel değil)
 - [ ] ⏳ **Kullanıcı aksiyonu bekliyor (bu sandbox'ta Java/Android SDK kurulu değil):** `npm run cap:sync` sonrası Android Studio ile açıp gerçek cihaz/emülatörde barkod tarama testi + APK/AAB build alma
 
-### Blok 10 — Teslimat Paketinin Hazırlanması (Play Console'a biz girmiyoruz)
-- [ ] Keystore oluşturma, imzalı **AAB** (ve ayrıca test için kolay kurulan bir **APK**) build alma
+### Blok 10 — Teslimat Paketinin Hazırlanması (Play Console'a biz girmiyoruz) — ⏸️ Kullanıcı kararıyla ŞİMDİLİK ATLANDI
+- [ ] Keystore oluşturma, imzalı **AAB** (ve ayrıca test için kolay kurulan bir **APK**) build alma — **Android SDK/Java/Gradle gerektiriyor, bu sandbox'ta yok**
 - [ ] Gizlilik politikası sayfası (Vercel'de statik `/privacy` route — kamera izni ve veri kullanımı açıklaması; Play Console başvurusunda zorunlu, teslim alan taraf kullanacak)
 - [ ] Store görselleri: ikon, öne çıkan görsel, ekran görüntüleri, kısa/uzun açıklama metni taslağı (teslim alan taraf direkt yapıştırıp kullanabilsin diye)
 - [ ] Keystore dosyası + şifresi + paket adı (applicationId) bilgilerinin güvenli şekilde teslimat paketine eklenmesi
 - [ ] Kısa bir "nasıl yayınlanır" talimatı (README_YAYIN.md): AAB'yi Play Console'a yükleme adımları, closed testing/12 tester-14 gün kuralının kendi hesaplarında geçerli olabileceği notu
 - [ ] Son teslimat: kaynak kod (repo) + canlı Vercel linki + imzalı AAB/APK + keystore + yayın talimatı
 
-**Gün 2 sonu çıktı:** Teslim edilmeye hazır tam paket — web app canlı, Android build imzalı ve test edilmiş, yayınlama Play Console adımı teslim alan tarafa bırakılmış.
+**Not:** Bu blok istendiğinde, gerçek bir Android Studio/JDK ortamında (kendi bilgisayarınızda veya bu sandbox'a Android SDK eklendiğinde) devam edilebilir. Kod ve native proje (`android/`) tamamen hazır durumda; eksik olan sadece Gradle build adımı, keystore oluşturma ve Play Console'a özel yazılı materyaller.
+
+**Gün 2 sonu çıktı — kısmen ulaşıldı:** Web app tüm özellikleriyle kodlanmış ve yerel ortamda uçtan uca çalışıyor (Vercel deploy'u Blok 1/8'deki hesap bilgileri geldiğinde tamamlanacak). Android tarafı native proje seviyesinde hazır; imzalı build ve Play Console teslimat paketi Blok 10 devam ettiğinde tamamlanacak.
 
 ---
 
@@ -204,5 +206,12 @@ Süre kısıtı nedeniyle v1 kapsamı dışına alınanlar — MVP oturduktan so
 - Bu plan PM'in "1-2 gün, web app + Vercel + Supabase + Capacitor" talimatı üzerine v1'den güncellendi (önceki React Native/Expo + monorepo yaklaşımı terk edildi).
 - Uygulama biz tarafımızdan yayınlanmayacak, **teslim edilecek** — Play Console / 12 tester-14 gün konusu teslim alan tarafın sorumluluğu, bizim sprint'imizi bloklamıyor.
 - Bir yerde tıkanırsak (CORS, Capacitor kamera izni, keystore vb.) hemen burada işaretleyip soracağız, sprint'i durdurmayacağız.
-- Şu an sıradaki adım: **Gün 1 / Blok 1 — Kurulum**.
 - Açık/varsayılan karar: v1'de Supabase Auth **yok**, hassasiyet/geçmiş/favori localStorage'da tutulacak (hız için varsayılan, itiraz olursa değişir).
+
+### 🟢 Şu Anki Durum (Gün 2 sonu)
+Blok 1-9 tamamlandı (kod tarafı). Blok 10 kullanıcı kararıyla şimdilik atlandı. **Bekleyen 3 kullanıcı aksiyonu:**
+1. Supabase projesi oluşturma + `.env` doldurma (Blok 1)
+2. Vercel'e bağlanıp deploy etme (Blok 1/8)
+3. Gerçek bir Android Studio/JDK ortamında `npm run cap:sync` sonrası cihaz testi + Blok 10 (keystore/AAB/store materyalleri)
+
+Bu üçü dışında uygulama fonksiyonel olarak tamamlanmış durumda: barkod tarama, ürün verisi (OFF + Supabase cache), hassasiyet profili, uygunluk skoru, alerjen uyarısı, katkı maddesi açıklamaları, geçmiş, favoriler, manuel ürün ekleme, ilk açılış onay ekranı ve Hakkında sayfası — hepsi kodlandı, build/lint temiz, `npm run dev` ile yerelde uçtan uca test edilebilir.
