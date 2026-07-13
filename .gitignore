@@ -10,8 +10,19 @@ dist-ssr/
 .env.local
 .env.*.local
 
-# Capacitor / Android (Blok 9'da eklenecek)
-android/
+# Capacitor / Android
+# NOT: android/ klasörü BİLEREK commit ediliyor (gitignore'da DEĞİL) — AndroidManifest.xml'e
+# eklenen kamera izni gibi native özelleştirmeler kaybolmasın. Sadece Gradle'ın oluşturduğu
+# build çıktıları hariç tutuluyor.
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+android/*.iml
+android/.idea/
+# `npx cap sync android` her seferinde dist/'ten yeniden kopyalar, commit etmeye gerek yok:
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
 ios/
 
 # Editor

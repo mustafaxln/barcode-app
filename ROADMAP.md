@@ -152,10 +152,15 @@ Bu mantık `src/lib/scoring.ts` içinde, framework'ten bağımsız düz TypeScri
 - [x] Favoriler: ürün detayında kalp butonu ile toggle + `/favoriler` liste ekranı (kaldır butonu dahil)
 - [x] Manuel ürün ekleme formu: ad, marka, içindekiler, görsel URL, 8 besin değeri alanı → `manual_submissions` tablosuna insert (Supabase henüz kurulmadıysa hata mesajı gösteriyor, uygulamayı kırmıyor)
 
-### Blok 8 — Web Cilalama ve Prod Deploy (≈1 saat)
-- [ ] Mobil tarayıcı / responsive kontrolü (gerçek kullanım senaryosu telefon tarayıcısı + sonra Capacitor)
-- [ ] Boş/hata durumları taraması
-- [ ] Vercel production deploy, env secrets kontrolü
+### Blok 8 — Web Cilalama ve Prod Deploy (≈1 saat) — 🟡 Kod tarafı tamamlandı, deploy kullanıcı aksiyonu bekliyor
+- [x] Responsive kontrol: NavBar küçük ekranda alt, büyük ekranda üst navigasyon olacak şekilde zaten tasarlanmıştı, teyit edildi
+- [x] Boş/hata durumları taraması: tüm sayfalarda (Tara, Ürün, Geçmiş, Favoriler) yükleniyor/boş/hata durumları zaten mevcuttu, gözden geçirildi
+- [x] **Performans:** Route bazlı code-splitting eklendi (`React.lazy` + `Suspense`) — "500kB üzeri chunk" uyarısı kayboldu, `@zxing/library` ve `@supabase/supabase-js` artık ayrı chunk'larda, sadece ihtiyaç olan sayfa yüklendiğinde iniyor
+- [x] **İlk açılış onayı:** `DisclaimerGate` bileşeni — uygulamayı ilk açtığınızda "Başlamadan Önce" sorumluluk reddi ekranı çıkıyor, bir kez onaylanınca tekrar çıkmıyor (localStorage)
+- [x] **Hakkında sayfası** (`/hakkinda`) — veri kaynağı, sorumluluk reddi tam metni, gizlilik notu (kamera/localStorage)
+- [x] Küçük a11y iyileştirmesi: video elementine `aria-label` eklendi
+- [x] `TESTING.md` — gerçek cihazda geçilmesi gereken manuel test checklist'i yazıldı (kamera/tarama gibi sandbox'ta test edilemeyen akışlar için)
+- [ ] ⏳ **Kullanıcı aksiyonu bekliyor:** Vercel production deploy + Supabase RLS son kontrol (Blok 1'deki hesap kurulumuyla birlikte yapılacak)
 
 ### Blok 9 — Capacitor ile Android'e Sarma (≈1.5-2 saat)
 - [ ] `@capacitor/core` + `@capacitor/android` kurulumu, `npx cap init`, `npx cap add android`

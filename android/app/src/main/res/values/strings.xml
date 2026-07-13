@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Barkod İçerik Kontrol</string>
+    <string name="title_activity_main">Barkod İçerik Kontrol</string>
+    <string name="package_name">com.barkodkontrol.app</string>
+    <string name="custom_url_scheme">com.barkodkontrol.app</string>
+</resources>
