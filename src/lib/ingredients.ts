@@ -1,4 +1,53 @@
 /**
+ * Bazı katkıda bulunanlar OFF'a sadece içindekiler listesini değil, ambalajın üzerindeki TÜM
+ * metni (üretici bilgisi, barkod, son kullanma tarihi, saklama koşulları, enerji tablosu başlığı
+ * vb.) kopyalayıp yapıştırıyor. Bu fonksiyon "İçindekiler:" gibi bir işaretten sonrasını alıp,
+ * bilinen "ilgisiz metin" başlangıçlarından (üretici, tavsiye edilen tüketim tarihi, net miktar,
+ * enerji ve besin öğeleri vb.) önce kesiyor. Amaç mükemmel değil, "kabaca doğru" bir sonuç.
+ */
+// Not: Türkçe'de büyük noktalı "İ" harfi, JS regex'in varsayılan case-insensitive eşleştirmesinde
+// düz "i" ile eşleşmez ("Turkish-I" problemi). Bu yüzden ilk harf için [İIıi] karakter sınıfını
+// açıkça belirtiyoruz.
+const INGREDIENTS_START_MARKERS = [/[İIıi][cç]indekiler\s*[:：]/i, /ingredients\s*[:：]/i];
+
+const IRRELEVANT_TAIL_MARKERS = [
+  /üretici\s*(firma)?\s*[:：]?/i,
+  /tavsiye edilen t[üu]ketim tarihi/i,
+  /son kullanma tarihi/i,
+  /net (miktar|a[ğg]ırlık)/i,
+  /enerji ve besin/i,
+  /saklama ko[şs]ullar[ıi]/i,
+  /a[çc][ıi]ld[ıi]ktan sonra/i,
+  /kullanmadan önce çalkala/i,
+  /t[üu]ketici (ileti[şs]im|hizmet)/i,
+  /[İIıi][şs]letme kay[ıi]t/i,
+  /men[şs]e[i]?\s*[üu]lke/i,
+  /www\./i,
+];
+
+export function extractIngredientsSection(rawText: string): string {
+  let text = rawText;
+
+  for (const marker of INGREDIENTS_START_MARKERS) {
+    const match = text.match(marker);
+    if (match && match.index !== undefined) {
+      text = text.slice(match.index + match[0].length);
+      break;
+    }
+  }
+
+  let cutAt = text.length;
+  for (const marker of IRRELEVANT_TAIL_MARKERS) {
+    const match = text.match(marker);
+    if (match && match.index !== undefined && match.index < cutAt) {
+      cutAt = match.index;
+    }
+  }
+
+  return text.slice(0, cutAt).trim();
+}
+
+/**
  * OFF'un ham içindekiler metni "Şeker, Fındık 13%, emülsifiyanlar: lesitin [SOYA], vanilin" gibi
  * gelir. Basit bir virgülle bölme parantez/köşeli parantez içindeki virgülleri de böler,
  * bu yüzden parantez derinliğini takip ederek sadece üst seviyedeki virgüllerden bölüyoruz.

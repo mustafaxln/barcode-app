@@ -1,4 +1,5 @@
 import type { Product } from './types';
+import { extractIngredientsSection } from './ingredients';
 
 const OFF_FIELDS = [
   'code',
@@ -75,12 +76,17 @@ function buildIngredientsTextFromStructured(nodes: OffIngredientNode[] | undefin
 }
 
 function pickIngredientsText(raw: OffProduct): string | undefined {
-  return (
-    raw.ingredients_text_tr?.trim() ||
-    raw.ingredients_text_en?.trim() ||
-    raw.ingredients_text?.trim() ||
-    buildIngredientsTextFromStructured(raw.ingredients)
-  );
+  const candidate =
+    raw.ingredients_text_tr?.trim() || raw.ingredients_text_en?.trim() || raw.ingredients_text?.trim();
+
+  if (candidate) {
+    // Bazı OFF girişlerinde bu alana ambalajdaki TÜM metin (üretici, SKT, enerji tablosu vb.)
+    // kopyalanmış oluyor; alakasız kısımları temizleyip sadece içindekiler bölümünü bırakıyoruz.
+    const cleaned = extractIngredientsSection(candidate);
+    return cleaned || candidate;
+  }
+
+  return buildIngredientsTextFromStructured(raw.ingredients);
 }
 
 function mapOffProductToProduct(barcode: string, raw: OffProduct): Product {
