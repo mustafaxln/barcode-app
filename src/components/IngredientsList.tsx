@@ -1,12 +1,12 @@
 import { parseIngredients } from '../lib/ingredients';
+import { useLanguage } from '../lib/i18n/LanguageContext';
 
 export function IngredientsList({ ingredientsText }: { ingredientsText?: string }) {
+  const { t } = useLanguage();
   const items = parseIngredients(ingredientsText);
 
   if (items.length === 0) {
-    return (
-      <p className="text-sm text-neutral-400">Bu ürün için içindekiler bilgisi bulunamadı.</p>
-    );
+    return <p className="text-sm text-neutral-400">{t('ingredientsList.notFound')}</p>;
   }
 
   return (

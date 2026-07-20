@@ -1,14 +1,17 @@
 import { getAdditiveInfo } from '../lib/additives';
+import { useLanguage } from '../lib/i18n/LanguageContext';
 
 export function AdditivesList({ additivesTags }: { additivesTags: string[] }) {
+  const { t } = useLanguage();
+
   if (additivesTags.length === 0) {
-    return <p className="text-sm text-neutral-400">Bu üründe katkı maddesi tespit edilmedi.</p>;
+    return <p className="text-sm text-neutral-400">{t('additivesList.none')}</p>;
   }
 
   return (
     <ul className="flex flex-col gap-2 text-left">
       {additivesTags.map((tag) => {
-        const info = getAdditiveInfo(tag);
+        const info = getAdditiveInfo(tag, t);
         return (
           <li
             key={tag}
@@ -23,7 +26,7 @@ export function AdditivesList({ additivesTags }: { additivesTags: string[] }) {
                 <p className="mt-0.5 text-xs text-neutral-500">{info.description}</p>
               </>
             ) : (
-              <span className="ml-2 text-neutral-500">Bu katkı maddesi için henüz açıklama eklenmedi.</span>
+              <span className="ml-2 text-neutral-500">{t('additivesList.noDescription')}</span>
             )}
           </li>
         );

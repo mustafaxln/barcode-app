@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { NavBar } from './components/NavBar';
 import { DisclaimerGate } from './components/DisclaimerGate';
+import { AdMobBootstrap } from './components/AdMobBootstrap';
 
 const ScanPage = lazy(() => import('./pages/ScanPage').then((m) => ({ default: m.ScanPage })));
 const ProductPage = lazy(() => import('./pages/ProductPage').then((m) => ({ default: m.ProductPage })));
@@ -22,7 +23,8 @@ function PageFallback() {
 export function App() {
   return (
     <DisclaimerGate>
-      <div className="flex min-h-screen flex-col sm:flex-col-reverse">
+      <AdMobBootstrap />
+      <div className="app-shell flex min-h-screen flex-col bg-neutral-50 pt-[var(--admob-banner-offset,0px)] sm:flex-col-reverse">
         <main className="flex-1">
           <Suspense fallback={<PageFallback />}>
             <Routes>

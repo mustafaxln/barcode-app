@@ -1,18 +1,17 @@
 import { Link } from 'react-router-dom';
 import { useFavorites } from '../hooks/useFavorites';
+import { useLanguage } from '../lib/i18n/LanguageContext';
 
 export function FavoritesPage() {
   const { favorites, toggle } = useFavorites();
+  const { t } = useLanguage();
 
   return (
     <div className="mx-auto flex max-w-md flex-col gap-4 px-4 py-8">
-      <h1 className="text-2xl font-bold text-brand-700">Favoriler</h1>
+      <h1 className="text-2xl font-bold text-brand-700">{t('favorites.title')}</h1>
 
       {favorites.length === 0 ? (
-        <p className="mt-8 text-center text-sm text-neutral-400">
-          Henüz favori ürününüz yok. Ürün detay ekranındaki "Favorilere Ekle" butonuyla
-          ekleyebilirsiniz.
-        </p>
+        <p className="mt-8 text-center text-sm text-neutral-400">{t('favorites.empty')}</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {favorites.map((entry) => (
@@ -36,7 +35,7 @@ export function FavoritesPage() {
                 onClick={() => toggle(entry)}
                 className="text-xs font-medium text-neutral-400 hover:text-danger-500"
               >
-                Kaldır
+                {t('favorites.remove')}
               </button>
             </li>
           ))}

@@ -20,6 +20,25 @@ body,
   height: 100%;
 }
 
+:root {
+  --admob-banner-offset: 0px;
+}
+
 body {
   @apply bg-neutral-50 text-neutral-900 antialiased;
+}
+
+/*
+  Native ML Kit tarayıcı kamerayı WebView'ın ARKASINA çizer.
+  Opak arka planlar kamerayı kapatır; tarama sırasında şeffaf bırakıyoruz.
+*/
+body.barcode-scanner-active,
+body.barcode-scanner-active #root,
+body.barcode-scanner-active .app-shell,
+body.barcode-scanner-active .app-shell > main {
+  background: transparent !important;
+}
+
+body.barcode-scanner-active .native-scan-viewport {
+  background: transparent !important;
 }

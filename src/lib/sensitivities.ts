@@ -17,19 +17,24 @@ export type AllergenId =
   | 'celery'
   | 'sulphur-dioxide-and-sulphites';
 
-export const ALLERGEN_OPTIONS: { id: AllergenId; label: string }[] = [
-  { id: 'gluten', label: 'Gluten' },
-  { id: 'milk', label: 'Süt' },
-  { id: 'eggs', label: 'Yumurta' },
-  { id: 'nuts', label: 'Kuruyemiş' },
-  { id: 'peanuts', label: 'Yer Fıstığı' },
-  { id: 'soybeans', label: 'Soya' },
-  { id: 'fish', label: 'Balık' },
-  { id: 'crustaceans', label: 'Kabuklu Deniz Ürünleri' },
-  { id: 'sesame-seeds', label: 'Susam' },
-  { id: 'mustard', label: 'Hardal' },
-  { id: 'celery', label: 'Kereviz' },
-  { id: 'sulphur-dioxide-and-sulphites', label: 'Sülfitler' },
+/**
+ * Görünen etiketler (Gluten, Süt, Milk, ...) artık `lib/i18n/translations.ts` içindeki
+ * `allergens.<id>` anahtarlarından geliyor — burada sadece kimlik listesi tutuluyor.
+ * Arayüzde göstermek için `t(\`allergens.${id}\`)` kullanın.
+ */
+export const ALLERGEN_OPTIONS: { id: AllergenId }[] = [
+  { id: 'gluten' },
+  { id: 'milk' },
+  { id: 'eggs' },
+  { id: 'nuts' },
+  { id: 'peanuts' },
+  { id: 'soybeans' },
+  { id: 'fish' },
+  { id: 'crustaceans' },
+  { id: 'sesame-seeds' },
+  { id: 'mustard' },
+  { id: 'celery' },
+  { id: 'sulphur-dioxide-and-sulphites' },
 ];
 
 export interface UserSensitivities {

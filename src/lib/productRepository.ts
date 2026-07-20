@@ -83,7 +83,23 @@ async function cacheProduct(product: Product): Promise<void> {
 export type ProductResolution =
   | { status: 'found'; product: Product; source: 'cache' | 'off' }
   | { status: 'not_found' }
-  | { status: 'error'; message: string };
+  | { status: 'error' };
+
+/**
+ * Geliştirme sürecinde ayrıştırma/eşleme kodu değiştikçe, daha önce eski koda göre
+ * cache'lenmiş satırlar eksik/hatalı kalabiliyor (örn. besin değeri boş, içindekiler yarım
+ * kesilmiş). `resolveProduct` cache'i her zaman OFF'a tercih ettiği için bu satırlar hiç
+ * düzelmeden sonsuza kadar gösterilirdi. Paketli gıdaların OFF'ta besin değeri hiç olmaması
+ * son derece nadir bir durumdur; bu yüzden OFF kaynaklı bir satırda besin değerlerinin
+ * TAMAMEN boş olmasını güçlü bir "bozuk/eski cache" sinyali sayıp cache'i atlıyor, taze
+ * veriyle üzerine yazıyoruz. Kullanıcının manuel girdiği ürünler (`source !== 'off'`) bu
+ * kontrolden muaf: onlarda besin değeri girilmemiş olması normaldir.
+ */
+function isStaleOffCache(product: Product): boolean {
+  if (product.source !== 'off') return false;
+  const hasNutrition = Object.values(product.nutrition ?? {}).some((value) => value !== undefined);
+  return !hasNutrition;
+}
 
 /**
  * Barkoda göre ürünü bulur: önce Supabase cache, sonra Open Food Facts.
@@ -91,7 +107,7 @@ export type ProductResolution =
  */
 export async function resolveProduct(barcode: string): Promise<ProductResolution> {
   const cached = await getCachedProduct(barcode);
-  if (cached) {
+  if (cached && !isStaleOffCache(cached)) {
     return { status: 'found', product: cached, source: 'cache' };
   }
 
@@ -103,9 +119,7 @@ export async function resolveProduct(barcode: string): Promise<ProductResolution
     void cacheProduct(offProduct);
     return { status: 'found', product: offProduct, source: 'off' };
   } catch (err) {
-    return {
-      status: 'error',
-      message: err instanceof Error ? err.message : 'Ürün verisi alınamadı.',
-    };
+    console.warn('[products] OFF isteği başarısız:', err);
+    return { status: 'error' };
   }
 }

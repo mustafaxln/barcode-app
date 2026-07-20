@@ -7,7 +7,6 @@ const OFF_FIELDS = [
   'brands',
   'image_url',
   'ingredients_text',
-  'ingredients_text_tr',
   'ingredients_text_en',
   'ingredients',
   'nutriments',
@@ -38,7 +37,6 @@ interface OffProduct {
   brands?: string;
   image_url?: string;
   ingredients_text?: string;
-  ingredients_text_tr?: string;
   ingredients_text_en?: string;
   ingredients?: OffIngredientNode[];
   nutriments?: OffNutriments;
@@ -60,9 +58,10 @@ function stripLocalePrefix(tag: string): string {
 }
 
 /**
- * OFF'ta ürünler çoğunlukla girildiği ülkenin dilinde saklanır (Fransızca, Almanca vb.) ve
- * `ingredients_text` alanı bu orijinal dili döndürür. Türkçe çevirisi (`ingredients_text_tr`)
- * genelde yoktur; bu durumda İngilizce çeviri, orijinal dilden çok daha anlaşılır bir fallback'tir.
+ * PM kararı: arayüz TR/EN arasında değişebilir ama ÜRÜN İÇERİĞİ (isim, içindekiler) her zaman
+ * İngilizce olmalı — kullanıcının seçtiği arayüz diline bakılmaksızın. Bu yüzden OFF'tan İngilizce
+ * çeviriyi (`ingredients_text_en`) önceliklendiriyoruz; sadece o da yoksa OFF'un orijinal dildeki
+ * metnine (`ingredients_text`) düşüyoruz (bazı ürünlerde İngilizce çeviri hiç girilmemiş olabilir).
  */
 /**
  * Bazı ürünlerde (örn. bazı Heinz Ketçap girişleri) hiçbir dilde düz `ingredients_text` girilmemiş
@@ -76,8 +75,7 @@ function buildIngredientsTextFromStructured(nodes: OffIngredientNode[] | undefin
 }
 
 function pickIngredientsText(raw: OffProduct): string | undefined {
-  const candidate =
-    raw.ingredients_text_tr?.trim() || raw.ingredients_text_en?.trim() || raw.ingredients_text?.trim();
+  const candidate = raw.ingredients_text_en?.trim() || raw.ingredients_text?.trim();
 
   if (candidate) {
     // Bazı OFF girişlerinde bu alana ambalajdaki TÜM metin (üretici, SKT, enerji tablosu vb.)
@@ -89,23 +87,33 @@ function pickIngredientsText(raw: OffProduct): string | undefined {
   return buildIngredientsTextFromStructured(raw.ingredients);
 }
 
+/**
+ * OFF bazen birim dönüşümünden kalan uzun ondalıklar döner (örn. 116.666666666667).
+ * Bunları okunabilir hale getiriyoruz: enerji 1 ondalık, diğerleri 2 ondalık.
+ */
+function roundNutrient(value: number | undefined, decimals: number): number | undefined {
+  if (value === undefined || value === null || Number.isNaN(value)) return undefined;
+  const factor = 10 ** decimals;
+  return Math.round(value * factor) / factor;
+}
+
 function mapOffProductToProduct(barcode: string, raw: OffProduct): Product {
   const n = raw.nutriments ?? {};
   return {
     barcode,
-    name: raw.product_name?.trim() || 'Bilinmeyen Ürün',
+    name: raw.product_name?.trim() || 'Unknown Product',
     brand: raw.brands?.split(',')[0]?.trim(),
     imageUrl: raw.image_url,
     ingredientsText: pickIngredientsText(raw),
     nutrition: {
-      energyKcal: n['energy-kcal_100g'],
-      fat: n.fat_100g,
-      saturatedFat: n['saturated-fat_100g'],
-      carbohydrates: n.carbohydrates_100g,
-      sugars: n.sugars_100g,
-      fiber: n.fiber_100g,
-      proteins: n.proteins_100g,
-      salt: n.salt_100g,
+      energyKcal: roundNutrient(n['energy-kcal_100g'], 1),
+      fat: roundNutrient(n.fat_100g, 2),
+      saturatedFat: roundNutrient(n['saturated-fat_100g'], 2),
+      carbohydrates: roundNutrient(n.carbohydrates_100g, 2),
+      sugars: roundNutrient(n.sugars_100g, 2),
+      fiber: roundNutrient(n.fiber_100g, 2),
+      proteins: roundNutrient(n.proteins_100g, 2),
+      salt: roundNutrient(n.salt_100g, 2),
     },
     additivesTags: (raw.additives_tags ?? []).map(stripLocalePrefix),
     allergensTags: (raw.allergens_tags ?? []).map(stripLocalePrefix),
@@ -120,7 +128,10 @@ function mapOffProductToProduct(barcode: string, raw: OffProduct): Product {
  * Ürün bulunamazsa (status 0) `null` döner; ağ/format hatalarında Error fırlatır.
  */
 export async function fetchProductFromOpenFoodFacts(barcode: string): Promise<Product | null> {
-  const url = `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json?lc=tr&fields=${OFF_FIELDS}`;
+  // `lc=en`: OFF'un yerelleştirme/gösterim dili İngilizce olsun — ürün içeriği (isim, içindekiler)
+  // her zaman İngilizce çekilsin diye. Arayüz dili (TR/EN) bundan bağımsız, sadece uygulamanın
+  // kendi metinlerini (lib/i18n) etkiler.
+  const url = `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json?lc=en&fields=${OFF_FIELDS}`;
 
   const response = await fetch(url);
 

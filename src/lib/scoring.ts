@@ -1,15 +1,26 @@
 import type { Product } from './types';
 import type { AllergenId, UserSensitivities } from './sensitivities';
-import { ALLERGEN_OPTIONS } from './sensitivities';
 import { getNutrientLevel } from './nutritionThresholds';
-import { getAdditiveInfo } from './additives';
+import { isAttentionAdditive } from './additives';
 
 export type ScoreLabel = 'uygun' | 'dikkatli-ol' | 'uygun-degil';
 
-export interface ScoreReason {
-  severity: 'critical' | 'warning' | 'info';
-  message: string;
-}
+type TrackedNutrient = 'fat' | 'saturatedFat' | 'sugars' | 'salt';
+
+/**
+ * Skor sebepleri artık hazır bir metin (`message`) değil, YAPISAL veri taşıyor. Metne çevirme
+ * işi arayüz katmanında (ScoreBadge.tsx) `t()` ile yapılıyor — böylece scoring.ts dil bilmeden,
+ * saf mantık olarak kalabiliyor.
+ */
+export type ScoreReason =
+  | { severity: 'critical'; type: 'allergenMatch'; allergenId: AllergenId }
+  | { severity: 'warning'; type: 'veganConflict' }
+  | { severity: 'warning'; type: 'vegetarianConflict' }
+  | { severity: 'warning'; type: 'glutenConflict' }
+  | { severity: 'warning'; type: 'lactoseConflict' }
+  | { severity: 'warning' | 'info'; type: 'nutrientLevel'; nutrient: TrackedNutrient; level: 'medium' | 'high'; tracked: boolean }
+  | { severity: 'info'; type: 'additiveNote'; tag: string }
+  | { severity: 'info'; type: 'noConflict' };
 
 export interface ScoreResult {
   score: number;
@@ -18,26 +29,12 @@ export interface ScoreResult {
   reasons: ScoreReason[];
 }
 
-export const SCORE_LABEL_META: Record<
-  ScoreLabel,
-  { text: string; badgeClassName: string; textClassName: string }
-> = {
-  uygun: { text: 'Uygun', badgeClassName: 'bg-brand-100 text-brand-700', textClassName: 'text-brand-700' },
-  'dikkatli-ol': {
-    text: 'Dikkatli Ol',
-    badgeClassName: 'bg-warn-100 text-warn-500',
-    textClassName: 'text-warn-500',
-  },
-  'uygun-degil': {
-    text: 'Uygun Değil',
-    badgeClassName: 'bg-danger-100 text-danger-500',
-    textClassName: 'text-danger-500',
-  },
+/** Görünen etiket ("Uygun"/"Suitable" vb.) artık `t('score.label.<label>')` üzerinden geliyor. */
+export const SCORE_LABEL_META: Record<ScoreLabel, { badgeClassName: string; textClassName: string }> = {
+  uygun: { badgeClassName: 'bg-brand-100 text-brand-700', textClassName: 'text-brand-700' },
+  'dikkatli-ol': { badgeClassName: 'bg-warn-100 text-warn-500', textClassName: 'text-warn-500' },
+  'uygun-degil': { badgeClassName: 'bg-danger-100 text-danger-500', textClassName: 'text-danger-500' },
 };
-
-function allergenLabel(id: AllergenId): string {
-  return ALLERGEN_OPTIONS.find((option) => option.id === id)?.label ?? id;
-}
 
 function textContainsAny(text: string | undefined, keywords: string[]): string | null {
   if (!text) return null;
@@ -48,28 +45,17 @@ function textContainsAny(text: string | undefined, keywords: string[]): string |
 /**
  * Vegan/vejetaryen ihlalleri OFF'un allergens_tags'inde tam yer almadığı için (örn. bal, jelatin,
  * et), içindekiler metninde basit anahtar kelime taraması da yapıyoruz. Bu bir yaklaşıklamadır,
- * kesin bir sertifikasyon değildir — UI'da bu sınırlılık belirtiliyor.
+ * kesin bir sertifikasyon değildir — UI'da bu sınırlılık belirtiliyor. Ürün içeriği artık her
+ * zaman İngilizce çekildiği için anahtar kelimeler de İngilizce.
  */
-const VEGAN_CONFLICT_KEYWORDS = ['bal', 'jelatin', 'jambon', 'sucuk', 'salam', 'pastırma'];
-const VEGETARIAN_CONFLICT_KEYWORDS = ['jambon', 'sucuk', 'salam', 'pastırma', 'et suyu', 'tavuk', 'balık'];
+const VEGAN_CONFLICT_KEYWORDS = ['honey', 'gelatin', 'gelatine', 'ham', 'bacon', 'salami', 'pepperoni'];
+const VEGETARIAN_CONFLICT_KEYWORDS = ['ham', 'bacon', 'salami', 'pepperoni', 'meat stock', 'chicken', 'fish'];
 
 const NUTRIENT_BASE_PENALTY: Record<'medium' | 'high', number> = { medium: 3, high: 8 };
 const NUTRIENT_TRACKED_EXTRA_PENALTY: Record<'medium' | 'high', number> = { medium: 7, high: 17 };
 
-const NUTRIENT_TR_LABEL: Record<'fat' | 'saturatedFat' | 'sugars' | 'salt', string> = {
-  fat: 'yağ',
-  saturatedFat: 'doymuş yağ',
-  sugars: 'şeker',
-  salt: 'tuz',
-};
-
-export function calculateSuitabilityScore(
-  product: Product,
-  sensitivities: UserSensitivities
-): ScoreResult {
-  const matchedAllergens = sensitivities.allergens.filter((id) =>
-    product.allergensTags.includes(id)
-  );
+export function calculateSuitabilityScore(product: Product, sensitivities: UserSensitivities): ScoreResult {
+  const matchedAllergens = sensitivities.allergens.filter((id) => product.allergensTags.includes(id));
 
   // 1) Sert engelleyici: seçili alerjenlerden biri üründe varsa skor otomatik sıfır.
   if (matchedAllergens.length > 0) {
@@ -79,7 +65,8 @@ export function calculateSuitabilityScore(
       matchedAllergens,
       reasons: matchedAllergens.map((id) => ({
         severity: 'critical',
-        message: `Bu ürün seçtiğiniz "${allergenLabel(id)}" alerjenini içeriyor.`,
+        type: 'allergenMatch',
+        allergenId: id,
       })),
     };
   }
@@ -95,10 +82,7 @@ export function calculateSuitabilityScore(
     const keywordConflict = textContainsAny(product.ingredientsText, VEGAN_CONFLICT_KEYWORDS);
     if (tagConflict || keywordConflict) {
       score -= 40;
-      reasons.push({
-        severity: 'warning',
-        message: 'Vegan diyetle uyumsuz olabilir (hayvansal içerik izi tespit edildi).',
-      });
+      reasons.push({ severity: 'warning', type: 'veganConflict' });
     }
   }
 
@@ -107,28 +91,22 @@ export function calculateSuitabilityScore(
     const keywordConflict = textContainsAny(product.ingredientsText, VEGETARIAN_CONFLICT_KEYWORDS);
     if (tagConflict || keywordConflict) {
       score -= 40;
-      reasons.push({
-        severity: 'warning',
-        message: 'Vejetaryen diyetle uyumsuz olabilir (et/balık içerik izi tespit edildi).',
-      });
+      reasons.push({ severity: 'warning', type: 'vegetarianConflict' });
     }
   }
 
   if (sensitivities.glutenFree && product.allergensTags.includes('gluten')) {
     score -= 40;
-    reasons.push({ severity: 'warning', message: 'Gluten içeriyor, glutensiz diyetinizle uyumsuz.' });
+    reasons.push({ severity: 'warning', type: 'glutenConflict' });
   }
 
   if (sensitivities.lactoseFree && product.allergensTags.includes('milk')) {
     score -= 30;
-    reasons.push({
-      severity: 'warning',
-      message: 'Süt/laktoz içeriyor, laktozsuz diyetinizle uyumsuz olabilir.',
-    });
+    reasons.push({ severity: 'warning', type: 'lactoseConflict' });
   }
 
   // 3) Besin değeri puanlaması (FSA trafik ışığı eşiklerine göre)
-  const nutrientTrackMap: Record<'fat' | 'saturatedFat' | 'sugars' | 'salt', boolean> = {
+  const nutrientTrackMap: Record<TrackedNutrient, boolean> = {
     fat: sensitivities.trackFat,
     saturatedFat: sensitivities.trackFat,
     sugars: sensitivities.trackSugar,
@@ -143,29 +121,25 @@ export function calculateSuitabilityScore(
       if (level === 'high' || tracked) {
         reasons.push({
           severity: level === 'high' ? 'warning' : 'info',
-          message: `${NUTRIENT_TR_LABEL[nutrient]} miktarı 100g'da ${level === 'high' ? 'yüksek' : 'orta'} seviyede${tracked ? ' (takip ettiğiniz bir değer)' : ''}.`,
+          type: 'nutrientLevel',
+          nutrient,
+          level,
+          tracked,
         });
       }
     }
   });
 
   // 4) Katkı maddesi puanlaması
-  const additiveDetails = product.additivesTags
-    .map((tag) => ({ tag, info: getAdditiveInfo(tag) }))
-    .filter((entry) => entry.info !== null) as { tag: string; info: NonNullable<ReturnType<typeof getAdditiveInfo>> }[];
-
-  const attentionAdditives = additiveDetails.filter((entry) => entry.info.attention);
+  const attentionAdditives = product.additivesTags.filter((tag) => isAttentionAdditive(tag));
 
   if (product.additivesTags.length > 0) {
     score -= Math.min(10, product.additivesTags.length);
   }
   if (attentionAdditives.length > 0) {
     score -= Math.min(24, attentionAdditives.length * 8);
-    attentionAdditives.forEach((entry) => {
-      reasons.push({
-        severity: 'info',
-        message: `${entry.info.name} (${entry.tag.toUpperCase()}) — ${entry.info.description}`,
-      });
+    attentionAdditives.forEach((tag) => {
+      reasons.push({ severity: 'info', type: 'additiveNote', tag });
     });
   }
 
@@ -174,7 +148,7 @@ export function calculateSuitabilityScore(
   const label: ScoreLabel = score >= 70 ? 'uygun' : score >= 40 ? 'dikkatli-ol' : 'uygun-degil';
 
   if (reasons.length === 0) {
-    reasons.push({ severity: 'info', message: 'Hassasiyetlerinizle bilinen bir çakışma bulunamadı.' });
+    reasons.push({ severity: 'info', type: 'noConflict' });
   }
 
   return { score, label, matchedAllergens, reasons };

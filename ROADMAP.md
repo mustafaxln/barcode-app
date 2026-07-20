@@ -1,6 +1,6 @@
 # 📱 Barkodlu Ürün İçerik Kontrol Uygulaması — Proje Yol Haritası (v2)
 
-> **Durum:** Plan PM talimatına göre güncellendi. Geliştirme başlamadı.
+> **Durum:** Blok 1-9 kod tarafı tamamlandı, Supabase backend bağlandı ve doğrulandı. Şu an gerçek Open Food Facts verisiyle QA/hata ayıklama turu sürüyor.
 > **Strateji (GÜNCEL):** Tek bir **web uygulaması** (React + Vite) yazılacak → **Vercel**'e deploy edilecek → **Supabase** backend olarak kullanılacak → **Capacitor** ile aynı kod tabanı Android'e sarılıp **Google Play**'e çıkılacak.
 > **Hedef süre:** 1-2 gün içinde geliştirme + yayına hazır hale getirme.
 > Bu dosya canlı yol haritasıdır, ilerledikçe checkbox'lar `[x]` yapılacak.
@@ -100,12 +100,12 @@ Bu mantık `src/lib/scoring.ts` içinde, framework'ten bağımsız düz TypeScri
 
 ## GÜN 1 — Çekirdek Akış: Tara → Ürünü Gör
 
-### Blok 1 — Kurulum (≈1 saat) — ✅ Kod tarafı tamamlandı, 2 adım kullanıcı aksiyonu bekliyor
+### Blok 1 — Kurulum (≈1 saat) — ✅ Tamamlandı
 - [x] Vite + React + TypeScript scaffold
 - [x] Tailwind CSS (v4) kurulumu, temel renk paleti (brand/warn/danger renkleri `src/index.css` içinde)
 - [x] `supabase/migrations/0001_init.sql` yazıldı (`products`, `manual_submissions` tabloları + RLS)
-- [ ] ⏳ **Kullanıcı aksiyonu:** Supabase projesi oluşturma + migration'ı çalıştırma + `.env` doldurma
-- [ ] ⏳ **Kullanıcı aksiyonu:** Vercel projesi bağlama, ilk deploy
+- [x] **Supabase projesi oluşturuldu, `.env` dolduruldu, RLS politikaları doğrulandı.** Yol boyunca çıkan `manual_submissions` insert hatası ("RLS violation") teşhis edildi: politika baştan doğruydu, hata aslında SELECT politikası olmayan bir tabloda `RETURNING`/`return=representation` ile satırı geri okumaya çalışmaktan kaynaklanıyordu. Uygulama kodu satırı geri istemediği için (`return=minimal`) gerçek akış hep sorunsuzdu.
+- [ ] ⏳ **Kullanıcı aksiyonu (opsiyonel):** Vercel projesi bağlama, ilk deploy — PM'in "uygulama mobil-öncelikli deneyim, web'e gerek olmayabilir" notuna göre bu adım artık zorunlu değil, istenirse yapılacak
 - [x] Git init + ilk commit (2 commit: kurulum + gitignore düzeltmesi)
 
 ### Blok 2 — Barkod Tarama Ekranı (≈2 saat) — ✅ Tamamlandı
@@ -160,9 +160,10 @@ Bu mantık `src/lib/scoring.ts` içinde, framework'ten bağımsız düz TypeScri
 - [x] **Hakkında sayfası** (`/hakkinda`) — veri kaynağı, sorumluluk reddi tam metni, gizlilik notu (kamera/localStorage)
 - [x] Küçük a11y iyileştirmesi: video elementine `aria-label` eklendi
 - [x] `TESTING.md` — gerçek cihazda geçilmesi gereken manuel test checklist'i yazıldı (kamera/tarama gibi sandbox'ta test edilemeyen akışlar için)
-- [ ] ⏳ **Kullanıcı aksiyonu bekliyor:** Vercel production deploy + Supabase RLS son kontrol (Blok 1'deki hesap kurulumuyla birlikte yapılacak)
+- [x] Supabase RLS son kontrol yapıldı, `manual_submissions` ve `products` üzerinde insert/upsert/select uçtan uca doğrulandı
+- [ ] ⏳ **Kullanıcı aksiyonu (opsiyonel):** Vercel production deploy — web versiyonuna gerek görülürse yapılacak
 
-### Blok 9 — Capacitor ile Android'e Sarma (≈1.5-2 saat) — 🟡 Kod/config tamamlandı, gerçek build kullanıcı aksiyonu bekliyor
+### Blok 9 — Capacitor ile Android'e Sarma (≈1.5-2 saat) — ✅ Tamamlandı
 - [x] `@capacitor/core` + `@capacitor/android` + `@capacitor/cli` kurulumu
 - [x] `npx cap init` — **Not:** `capacitor.config.ts` yerine `capacitor.config.json` kullanıldı çünkü kurulan TypeScript 7 (henüz çok yeni bir sürüm) ile `@capacitor/cli`'nin TS config parser'ı arasında bir uyumsuzluk çıktı (`ts.ModuleKind` undefined hatası); JSON format bu sorunu tamamen ortadan kaldırıyor ve işlevsel olarak birebir aynı
 - [x] `npx cap add android` — native Android projesi `android/` klasöründe oluşturuldu
@@ -170,20 +171,48 @@ Bu mantık `src/lib/scoring.ts` içinde, framework'ten bağımsız düz TypeScri
 - [x] **Önemli mimari doğrulama:** `@capacitor/android` paketinin kaynak kodunu inceleyip, WebView'daki `getUserMedia` kamera isteklerinin Capacitor tarafından otomatik native izin akışına bağlandığını doğruladım (bkz. yukarıdaki risk notu) — ekstra native kod gerekmiyor
 - [x] **Önemli düzeltme:** `android/` klasörü başta `.gitignore`'daydı (manifest'teki kamera izni özelleştirmesi kaybolurdu) — bunu düzelttim, artık `android/` commit ediliyor, sadece Gradle'ın ürettiği geçici build dosyaları (`build/`, `.gradle/`, kopyalanan web assets) hariç tutuluyor
 - [x] `npm run cap:sync` script'i eklendi (`vite build && npx cap sync android`)
-- [ ] App ikonu/splash screen: şu an Capacitor'ün varsayılan ikonu duruyor, marka özelleştirmesi Blok 10'daki teslimat/store görselleri hazırlığına bırakıldı (fonksiyonel test için engel değil)
-- [ ] ⏳ **Kullanıcı aksiyonu bekliyor (bu sandbox'ta Java/Android SDK kurulu değil):** `npm run cap:sync` sonrası Android Studio ile açıp gerçek cihaz/emülatörde barkod tarama testi + APK/AAB build alma
+- [x] **Android SDK/JDK ortamı kuruldu:** Homebrew ile `openjdk@21` (zaten kuruluydu, sadece PATH'e eklendi) + `android-commandlinetools` (platform-tools, `platforms;android-34`, `build-tools;34.0.0`) kuruldu, `android/local.properties` ile Gradle'a SDK yolu tanıtıldı
+- [x] `npm run cap:sync` + `./gradlew assembleDebug` çalıştırıldı → **debug APK başarıyla üretildi** (`android/app/build/outputs/apk/debug/app-debug.apk`, imza gerektirmez, gerçek cihaza kurup test edilebilir)
+- [ ] App ikonu/splash screen: şu an Capacitor'ün varsayılan ikonu duruyor, marka özelleştirmesi ileride yapılabilir (fonksiyonel test için engel değil)
+- [ ] Gerçek cihazda barkod tarama testi: APK bir Android telefona kurulup kamera/tarama akışı fiilen test edilmedi (sandbox'ta emülatör/cihaz yok) — **kullanıcı aksiyonu**
 
-### Blok 10 — Teslimat Paketinin Hazırlanması (Play Console'a biz girmiyoruz) — ⏸️ Kullanıcı kararıyla ŞİMDİLİK ATLANDI
-- [ ] Keystore oluşturma, imzalı **AAB** (ve ayrıca test için kolay kurulan bir **APK**) build alma — **Android SDK/Java/Gradle gerektiriyor, bu sandbox'ta yok**
-- [ ] Gizlilik politikası sayfası (Vercel'de statik `/privacy` route — kamera izni ve veri kullanımı açıklaması; Play Console başvurusunda zorunlu, teslim alan taraf kullanacak)
-- [ ] Store görselleri: ikon, öne çıkan görsel, ekran görüntüleri, kısa/uzun açıklama metni taslağı (teslim alan taraf direkt yapıştırıp kullanabilsin diye)
-- [ ] Keystore dosyası + şifresi + paket adı (applicationId) bilgilerinin güvenli şekilde teslimat paketine eklenmesi
-- [ ] Kısa bir "nasıl yayınlanır" talimatı (README_YAYIN.md): AAB'yi Play Console'a yükleme adımları, closed testing/12 tester-14 gün kuralının kendi hesaplarında geçerli olabileceği notu
-- [ ] Son teslimat: kaynak kod (repo) + canlı Vercel linki + imzalı AAB/APK + keystore + yayın talimatı
+### Blok 10 — Teslimat Paketinin Hazırlanması (Play Console'a biz girmiyoruz) — ✅ Tamamlandı (store görselleri/metinleri hariç)
+- [x] Keystore oluşturma (`android/barkodkontrol-release.keystore`, alias `barkodkontrol`, 10.000 gün geçerli), `android/keystore.properties` ile `build.gradle`'a release signing config bağlandı (repoya girmiyor, `.gitignore`'da)
+- [x] İmzalı **AAB** build alındı: `android/app/build/outputs/bundle/release/app-release.aab` — Play Console'a yüklenecek dosya
+- [x] İmzalı **release APK** build alındı: `android/app/build/outputs/apk/release/app-release.apk` — cihazda son kullanıcı testi için
+- [x] Tüm çıktılar + keystore + şifreler `teslimat-mobil/` klasöründe toplandı (bu klasör de repoya girmiyor, ayrı/güvenli kanaldan iletilecek)
+- [x] Kısa bir "nasıl yayınlanır" talimatı: **`README_YAYIN.md`** — Play Console'a AAB yükleme adımları, keystore bilgileri, yeniden build alma komutları, eksik kalan store materyalleri listesi
+- [ ] Gizlilik politikası sayfası için **herkese açık URL** — kod/metin `/hakkinda` sayfasında hazır ama Play Console formu için canlı bir link gerekiyor (Vercel deploy edilirse otomatik çözülür)
+- [ ] Store görselleri: ikon, öne çıkan görsel, ekran görüntüleri, kısa/uzun açıklama metni — **henüz hazırlanmadı**, `README_YAYIN.md`'de eksik olarak not edildi
+- [ ] Son teslimat: kaynak kod (repo) + (opsiyonel) canlı Vercel linki + imzalı AAB/APK + keystore + yayın talimatı → **AAB/APK/keystore/talimat hazır, Vercel linki ve store görselleri kullanıcı kararına bağlı**
 
-**Not:** Bu blok istendiğinde, gerçek bir Android Studio/JDK ortamında (kendi bilgisayarınızda veya bu sandbox'a Android SDK eklendiğinde) devam edilebilir. Kod ve native proje (`android/`) tamamen hazır durumda; eksik olan sadece Gradle build adımı, keystore oluşturma ve Play Console'a özel yazılı materyaller.
+**Not:** Native proje (`android/`) artık sadece kod seviyesinde değil, gerçek imzalı build seviyesinde tamamlandı. Kalan işler (store görselleri, açıklama metni, gizlilik politikası URL'si) kod değil, pazarlama/hesap materyali — istenirse ayrıca hazırlanabilir.
 
 **Gün 2 sonu çıktı — kısmen ulaşıldı:** Web app tüm özellikleriyle kodlanmış ve yerel ortamda uçtan uca çalışıyor (Vercel deploy'u Blok 1/8'deki hesap bilgileri geldiğinde tamamlanacak). Android tarafı native proje seviyesinde hazır; imzalı build ve Play Console teslimat paketi Blok 10 devam ettiğinde tamamlanacak.
+
+### Blok 11 — Dil Desteği: TR/EN Arayüz Çevirisi — ✅ Tamamlandı
+- [x] `src/lib/i18n/translations.ts` — TR/EN çeviri sözlüğü (nav, sayfalar, bileşenler, skor sebepleri, alerjenler, katkı maddeleri açıklamaları vb.)
+- [x] `src/lib/i18n/LanguageContext.tsx` — `LanguageProvider` + `useLanguage()` hook'u: dil tercihini `localStorage` (`language.v1`) içinde saklıyor, ilk açılışta tarayıcı diline göre varsayılan seçiyor (`en*` → İngilizce, aksi halde Türkçe)
+- [x] `NavBar`'a küçük bir **TR/EN** dil seçici eklendi (her sayfada erişilebilir)
+- [x] Tüm sayfalar (Tara, Ürün, Geçmiş, Favoriler, Profil, Ürün Ekle, Hakkında) ve bileşenler (ScoreBadge, Allergen/Additives/Nutrition/Ingredients listeleri, Disclaimer'lar, ErrorBoundary) çeviriye bağlandı
+- [x] Skor hesaplama mantığı (`scoring.ts`) artık hazır metin değil **yapısal sebep** (`type` + parametreler) döndürüyor; metne çevirme işini arayüz katmanı (`ScoreBadge.tsx`) `t()` ile yapıyor — böylece `scoring.ts` dil bilmeden saf mantık olarak kalıyor
+- [x] Alerjen etiketleri (`sensitivities.ts`) ve katkı maddesi adı/açıklamaları (`additives.ts`) TR/EN çeviri sözlüğünden geliyor
+- [x] **Ürün İÇERİĞİ (isim, içindekiler) kasıtlı olarak çeviriye dahil EDİLMEDİ** — PM kararı: içerik dili sabit **İngilizce** kalacak, sadece arayüz TR/EN arasında değişecek. `openFoodFacts.ts` artık OFF'tan `lc=en` ile ve `ingredients_text_en` önceliğiyle çekiyor (önceki `ingredients_text_tr` önceliği kaldırıldı)
+- [x] `tsc --noEmit` temiz, linter hatası yok, web build + `npx cap sync android` + imzalı AAB/APK yeniden üretildi (`versionCode 2`, `versionName "1.1"`)
+
+**Bilinen sınırlama:** Supabase `products` tablosunda **daha önce** (bu değişiklikten önce) cache'lenmiş bazı ürünlerin `ingredients_text`'i eski mantıkla (Türkçe öncelikli) çekilmiş olabilir — bu satırlar geriye dönük otomatik İngilizce'ye çevrilmiyor. Etkilenen barkod tekrar taranıp cache tazelenirse (`isStaleOffCache` mantığı besin değeri eksikse zaten tetikleniyor) veya satır Supabase'den silinirse, bir sonraki çekimde yeni İngilizce-öncelikli mantıkla güncellenir.
+
+---
+
+## 🐞 Bilinen Sorunlar (Çözülemedi, Sonraki Oturuma Bırakıldı)
+
+- **Tarama sayfasından ayrılınca kamera ışığı sönmüyor:** `ScanPage`'den başka bir sayfaya (Favoriler, Profil, Geçmiş) geçildiğinde kamera ışığı (macOS'ta yeşil ışık) sönmemesi gerekiyor ama sönmüyor. Denenenler ve elenen teoriler:
+  - `@zxing/library`'nin `decodeFromVideoDevice`'ının asenkron `getUserMedia` yarış durumu → düzeltildi ama sorunu çözmedi
+  - Stream'i kütüphaneye bırakmak yerine kendimiz `getUserMedia` ile alıp `activeStream` ref'inde tutup cleanup'ta doğrudan `track.stop()` çağırma → düzeltildi (kod artık böyle) ama sorunu çözmedi
+  - Tarayıcıda unutulmuş/arka planda açık eski sekmeler (bu oturumda çok kez port değiştirdik) → kullanıcı tüm sekmeleri kapatıp tek taze sekmeyle tekrar denedi, sorun hâlâ var, bu teori de elendi
+  - Sonuç: Kod mantığı doğru görünüyor (`tsc` temiz, React Query/route unmount akışı standart) ama gerçek tarayıcıda hâlâ ışık sönmüyor — kod okuyarak teşhis sınırına gelindi
+  - **Sonraki oturumda yapılacak:** `ScanPage.tsx`'e şimdi eklenen `console.log('[scan] ...')` satırlarıyla (`getUserMedia çözüldü`, `activeStream atandı`, `cleanup çalıştı`, `track durduruldu, readyState: ...`) tarayıcı konsolundan gerçek sırayı görüp tahmin yerine kesin teşhis koymak. Özellikle `track.readyState`'in `stop()` çağrısından sonra `'ended'` olup olmadığına bakılmalı — `'live'` kalıyorsa `stop()` çağrısı hiç çalışmıyor demektir (başka bir referans/kopya stream tutuluyor olabilir); `'ended'` oluyorsa tarayıcı/OS'un ışığı geç güncellemesi ayrı bir konu.
+  - Not: Bu, Capacitor ile Android'e sarıldığında muhtemelen yaşanmayacak bir sorun (tek WebView/pencere, "unutulmuş sekme" ihtimali yok) ama kod seviyesinde asıl kök neden netleşmeden bunu garanti edemeyiz.
 
 ---
 
@@ -208,10 +237,21 @@ Süre kısıtı nedeniyle v1 kapsamı dışına alınanlar — MVP oturduktan so
 - Bir yerde tıkanırsak (CORS, Capacitor kamera izni, keystore vb.) hemen burada işaretleyip soracağız, sprint'i durdurmayacağız.
 - Açık/varsayılan karar: v1'de Supabase Auth **yok**, hassasiyet/geçmiş/favori localStorage'da tutulacak (hız için varsayılan, itiraz olursa değişir).
 
-### 🟢 Şu Anki Durum (Gün 2 sonu)
-Blok 1-9 tamamlandı (kod tarafı). Blok 10 kullanıcı kararıyla şimdilik atlandı. **Bekleyen 3 kullanıcı aksiyonu:**
-1. Supabase projesi oluşturma + `.env` doldurma (Blok 1)
-2. Vercel'e bağlanıp deploy etme (Blok 1/8)
-3. Gerçek bir Android Studio/JDK ortamında `npm run cap:sync` sonrası cihaz testi + Blok 10 (keystore/AAB/store materyalleri)
+### 🟢 Şu Anki Durum (v1.3 — AdMob entegre, teslimata hazır)
+Blok 1-11 + AdMob tamamlandı. Reklamlar native Android'de çalışır (banner üstte, interstitial her 3. ürün detayında). Şu an Google **test ID**'leri bağlı; PM gerçek App ID / Ad Unit ID verince `ADMOB.md` adımlarıyla değiştirilir. Mobil paket: **`versionCode 4` / `versionName 1.3`** (`teslimat-mobil/`).
 
-Bu üçü dışında uygulama fonksiyonel olarak tamamlanmış durumda: barkod tarama, ürün verisi (OFF + Supabase cache), hassasiyet profili, uygunluk skoru, alerjen uyarısı, katkı maddesi açıklamaları, geçmiş, favoriler, manuel ürün ekleme, ilk açılış onay ekranı ve Hakkında sayfası — hepsi kodlandı, build/lint temiz, `npm run dev` ile yerelde uçtan uca test edilebilir.
+**Kalan kullanıcı aksiyonları (opsiyonel/ileri adım):**
+1. Vercel'e deploy (opsiyonel — PM notuna göre web versiyonuna gerek olmayabilir; sadece gizlilik politikası URL'si için gerekebilir)
+2. Gerçek bir Android telefonda APK'yı kurup barkod tarama akışını fiilen test etmek (sandbox'ta fiziksel cihaz/emülatör yok)
+3. Play Store materyalleri: ikon/splash özelleştirme, öne çıkan görsel, ekran görüntüleri, açıklama metni
+4. Play Console'a giriş + AAB yükleme (bkz. `README_YAYIN.md`) — hesap sahibinin kendi hesabında yapması gereken adım
+
+**Devam eden iş: Gerçek Open Food Facts verisiyle QA/hata ayıklama turu.** Supabase bağlandıktan sonra gerçek ürünlerle test ederken şu sorunlar bulunup düzeltildi:
+- İçindekiler metninde ondalık virgül hatası (Fransızca "7,4%" gibi ifadeler yanlış bölünüyordu) → düzeltildi
+- İçindekiler dil önceliği (tr → en → orijinal dil) + OFF'un bazı girişlerinde etikette ilgisiz metin (üretici bilgisi, SKT vb.) kopyalanmış olması → `extractIngredientsSection` ile temizlendi
+- Bazı ürünlerde düz `ingredients_text` boş ama yapılandırılmış `ingredients` listesi mevcut → fallback eklendi
+- **Önemli mimari düzeltme:** Supabase cache'e daha önce (kod düzeltilmeden önce) eksik/hatalı yazılmış satırlar (örn. Nutella'da besin değeri/resim boş kalmıştı) sonsuza kadar gösteriliyordu, çünkü cache her zaman OFF'a tercih ediliyordu. `productRepository.ts`'e, OFF kaynaklı ama besin değeri tamamen boş olan satırları "bozuk/eski" sayıp otomatik tazeleyen bir kontrol eklendi
+- `@zxing/library`'nin normal tarama akışında (barkod her karede hemen bulunamayınca) konsolu spam'leyen zararsız iç uyarısı (`MultiFormatReader: non-ReaderException`) tarama ekranında susturuldu
+- `PROJE-REHBERI.md` oluşturuldu — projenin tüm mimarisini, dosya/klasör yapısını, veri akışını örneklerle anlatan kapsamlı bir rehber
+
+Bu tur hâlâ sürüyor — kullanıcı farklı barkodlarla test edip bulduğu sorunları bildiriyor, birlikte kök nedenini bulup düzeltiyoruz. Bu üçü dışında uygulama fonksiyonel olarak tamamlanmış durumda: barkod tarama, ürün verisi (OFF + Supabase cache), hassasiyet profili, uygunluk skoru, alerjen uyarısı, katkı maddesi açıklamaları, geçmiş, favoriler, manuel ürün ekleme, ilk açılış onay ekranı ve Hakkında sayfası — hepsi kodlandı, build/lint temiz, `npm run dev` ile yerelde uçtan uca test edilebilir.

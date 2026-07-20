@@ -22,14 +22,20 @@ export function getNutrientLevel(
   return 'medium';
 }
 
-export const NUTRIENT_LEVEL_LABEL: Record<NutrientLevel, string> = {
-  low: 'Düşük',
-  medium: 'Orta',
-  high: 'Yüksek',
-};
-
+// Görünen etiketler ("Düşük"/"Low" vb.) artık `t('nutrition.levels.<level>')` üzerinden geliyor.
 export const NUTRIENT_LEVEL_CLASSES: Record<NutrientLevel, string> = {
   low: 'bg-brand-100 text-brand-700',
   medium: 'bg-warn-100 text-warn-500',
   high: 'bg-danger-100 text-danger-500',
 };
+
+/**
+ * OFF/cache'ten gelen 116.666666666667 gibi floating-point gürültüsünü ekranda
+ * okunabilir hale getirir (enerji 1 ondalık, diğerleri en fazla 2).
+ */
+export function formatNutrientValue(value: number, unit: string): string {
+  const decimals = unit === 'kcal' ? 1 : 2;
+  // toFixed + Number: "2.00" → 2 → "2", "2.35" → "2.35", "116.7" → "116.7"
+  const text = String(Number(value.toFixed(decimals)));
+  return `${text}${unit}`;
+}

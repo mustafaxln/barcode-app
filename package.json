@@ -8,13 +8,17 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "lint": "tsc --noEmit",
-    "cap:sync": "npm run build && npx cap sync android"
+    "cap:sync": "npm run build && npx cap sync android && find android/app/src/main/res android/app/src/main/assets -name '* *' -type f -delete",
+    "smoke": "node scripts/smoke-test.mjs",
+    "release:android": "npm run cap:sync && cd android && ./gradlew clean bundleRelease assembleRelease"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@capacitor-community/admob": "^8.0.0",
+    "@capacitor-mlkit/barcode-scanning": "^8.1.0",
     "@capacitor/android": "^8.4.1",
     "@capacitor/core": "^8.4.1",
     "@supabase/supabase-js": "^2.110.2",

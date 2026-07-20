@@ -4,4 +4,11 @@
     <string name="title_activity_main">Barkod İçerik Kontrol</string>
     <string name="package_name">com.barkodkontrol.app</string>
     <string name="custom_url_scheme">com.barkodkontrol.app</string>
+    <!--
+      Google AdMob App ID.
+      ŞU AN: Google'ın resmi Android TEST App ID'si (geliştirme / QA).
+      PM gerçek ID'yi verdiğinde burayı değiştirin, örn: ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY
+      Kaynak: AdMob Console → Uygulamalar → Android uygulaması → Uygulama ayarları → Uygulama kimliği
+    -->
+    <string name="admob_app_id">ca-app-pub-3940256099942544~3347511713</string>
 </resources>

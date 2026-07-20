@@ -1,3 +1,5 @@
+import type { TranslateFn } from './i18n/LanguageContext';
+
 export interface AdditiveInfo {
   name: string;
   description: string;
@@ -8,39 +10,75 @@ export interface AdditiveInfo {
 /**
  * Küçük, MVP kapsamlı bir E-kodu referans listesi (en yaygın karşılaşılanlar).
  * Eksiksiz bir katkı maddesi ansiklopedisi değildir — Faz Sonrası Backlog'da genişletilebilir.
+ * İsim/açıklama metinleri `lib/i18n/translations.ts` içindeki `additives.<code>` anahtarlarından
+ * gelir (TR/EN); burada sadece "dikkat" bayrağı ve bilinen kod listesi tutulur.
  */
-export const ADDITIVE_REFERENCE: Record<string, AdditiveInfo> = {
-  e100: { name: 'Kurkumin', description: 'Doğal sarı renklendirici (zerdeçal kökenli).', attention: false },
-  e120: { name: 'Koşnil (Karmin)', description: 'Böcek kökenli kırmızı renklendirici — vegan değildir.', attention: true },
-  e160a: { name: 'Karotenoidler', description: 'Doğal sarı/turuncu renklendirici.', attention: false },
-  e200: { name: 'Sorbik Asit', description: 'Koruyucu, genel olarak düşük risk.', attention: false },
-  e211: { name: 'Sodyum Benzoat', description: 'Koruyucu; bazı kişilerde hassasiyet bildirilmiştir.', attention: true },
-  e220: { name: 'Kükürt Dioksit', description: 'Koruyucu; sülfit hassasiyeti/astımı olanlarda reaksiyona yol açabilir.', attention: true },
-  e250: { name: 'Sodyum Nitrit', description: 'Et ürünlerinde koruyucu; yüksek tüketimi tartışmalı.', attention: true },
-  e251: { name: 'Sodyum Nitrat', description: 'Koruyucu; yüksek tüketimi tartışmalı.', attention: true },
-  e300: { name: 'Askorbik Asit (C Vitamini)', description: 'Antioksidan, düşük risk.', attention: false },
-  e322: { name: 'Lesitin', description: 'Emülgatör; genelde soya kökenlidir.', attention: false },
-  e330: { name: 'Sitrik Asit', description: 'Asitlik düzenleyici, düşük risk.', attention: false },
-  e407: { name: 'Karragenan', description: 'Kıvam arttırıcı; bazı araştırmalarda sindirim sistemi etkisi tartışılmıştır.', attention: true },
-  e440: { name: 'Pektin', description: 'Doğal kıvam verici (meyve kökenli).', attention: false },
-  e450: { name: 'Difosfatlar', description: 'Kıvam/su tutucu.', attention: false },
-  e471: { name: 'Mono- ve Digliseritler', description: 'Emülgatör; bitkisel veya hayvansal kökenli olabilir.', attention: false },
-  e500: { name: 'Sodyum Bikarbonat', description: 'Kabartıcı, düşük risk.', attention: false },
-  e621: { name: 'Monosodyum Glutamat (MSG)', description: 'Tat arttırıcı; bazı kişilerde hassasiyet bildirilmiştir.', attention: true },
-  e631: { name: 'Disodyum İnosinat', description: 'Tat arttırıcı; genelde hayvansal kökenlidir.', attention: true },
-  e951: { name: 'Aspartam', description: 'Yapay tatlandırıcı; fenilketonüri (PKU) hastaları için uyarı içerir.', attention: true },
-  e952: { name: 'Siklamat', description: 'Yapay tatlandırıcı.', attention: true },
-  e955: { name: 'Sükraloz', description: 'Yapay tatlandırıcı.', attention: false },
-};
+const ATTENTION_CODES = new Set([
+  'e120',
+  'e211',
+  'e220',
+  'e250',
+  'e251',
+  'e407',
+  'e621',
+  'e631',
+  'e951',
+  'e952',
+]);
 
-/** OFF'tan gelen etiketler bazen "e322i" gibi varyant harfi içerir; temel kod üzerinden eşleştiriyoruz. */
-export function getAdditiveInfo(tag: string): AdditiveInfo | null {
+const KNOWN_CODES = new Set([
+  'e100',
+  'e120',
+  'e160a',
+  'e200',
+  'e211',
+  'e220',
+  'e250',
+  'e251',
+  'e300',
+  'e322',
+  'e330',
+  'e407',
+  'e440',
+  'e450',
+  'e471',
+  'e500',
+  'e621',
+  'e631',
+  'e951',
+  'e952',
+  'e955',
+]);
+
+function normalizeCode(tag: string): string | null {
   const normalized = tag.toLowerCase();
-  if (ADDITIVE_REFERENCE[normalized]) return ADDITIVE_REFERENCE[normalized];
+  if (KNOWN_CODES.has(normalized)) return normalized;
 
+  // OFF'tan gelen etiketler bazen "e322i" gibi varyant harfi içerir; temel kod üzerinden eşleştiriyoruz.
   const baseCodeMatch = normalized.match(/^(e\d{3,4})/);
-  if (baseCodeMatch && ADDITIVE_REFERENCE[baseCodeMatch[1]]) {
-    return ADDITIVE_REFERENCE[baseCodeMatch[1]];
+  if (baseCodeMatch && KNOWN_CODES.has(baseCodeMatch[1])) {
+    return baseCodeMatch[1];
   }
   return null;
+}
+
+export function getAdditiveInfo(tag: string, t: TranslateFn): AdditiveInfo | null {
+  const code = normalizeCode(tag);
+  if (!code) return null;
+
+  return {
+    name: t(`additives.${code}.name`),
+    description: t(`additives.${code}.description`),
+    attention: ATTENTION_CODES.has(code),
+  };
+}
+
+/** Skor hesaplamasında (scoring.ts) sadece "dikkat" bayrağı gerekiyor, çeviriye ihtiyaç yok. */
+export function isAttentionAdditive(tag: string): boolean {
+  const code = normalizeCode(tag);
+  return Boolean(code && ATTENTION_CODES.has(code));
+}
+
+export function isKnownAdditive(tag: string): boolean {
+  return normalizeCode(tag) !== null;
 }

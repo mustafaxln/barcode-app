@@ -43,3 +43,7 @@ npm-debug.log*
 # Keystore (teslimat paketine ayrı ve güvenli şekilde eklenecek, repoya asla girmeyecek)
 *.keystore
 *.jks
+keystore.properties
+
+# Mobil teslimat paketi (AAB/APK/keystore) - repoya değil, ayrı ve güvenli kanaldan iletilecek
+teslimat-mobil/
