@@ -1,14 +1,12 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Barkod İçerik Kontrol</string>
-    <string name="title_activity_main">Barkod İçerik Kontrol</string>
+    <string name="app_name">FoodLens</string>
+    <string name="title_activity_main">FoodLens</string>
     <string name="package_name">com.barkodkontrol.app</string>
     <string name="custom_url_scheme">com.barkodkontrol.app</string>
     <!--
-      Google AdMob App ID.
-      ŞU AN: Google'ın resmi Android TEST App ID'si (geliştirme / QA).
-      PM gerçek ID'yi verdiğinde burayı değiştirin, örn: ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY
+      Google AdMob App ID (production).
       Kaynak: AdMob Console → Uygulamalar → Android uygulaması → Uygulama ayarları → Uygulama kimliği
     -->
-    <string name="admob_app_id">ca-app-pub-3940256099942544~3347511713</string>
+    <string name="admob_app_id">ca-app-pub-7672443581181379~9329030370</string>
 </resources>

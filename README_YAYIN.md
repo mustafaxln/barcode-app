@@ -2,67 +2,58 @@
 
 Bu dosya, mobil uygulamayı Google Play Console'a yüklemek için gereken adımları ve teslim edilen dosyaların ne olduğunu açıklar.
 
-**Güncel sürüm:** `versionCode 5` / `versionName 1.3.1`  
-Bu pakette: özel uygulama ikonu, Tara ekranı banner boşluğu, AdMob (test ID), TR/EN, geçmiş skor / besin düzeltmeleri.
+**Güncel sürüm:** `versionCode 7` / `versionName 1.4.1`  
+Bu pakette: native ML Kit kamera, özel uygulama ikonu, Tara ekranı banner boşluğu, AdMob (banner production / interstitial test), TR/EN, geçmiş skor / besin düzeltmeleri.
 
-## 📦 Teslim Edilen Dosyalar (`teslimat-mobil/` klasörü)
+## Teslim Edilen Dosyalar (`teslimat-mobil/` klasörü)
 
 Bu klasör repoya dahil edilmez (`.gitignore`), ayrı ve güvenli bir kanaldan (örn. şifreli zip, güvenli dosya paylaşımı) iletilmelidir çünkü içinde **imzalama anahtarı** var — bu anahtar kaybolursa uygulamanın Play Store'daki güncellemeleri asla yayınlanamaz.
 
 | Dosya | Ne işe yarar |
 |---|---|
-| `barkodkontrol-release.aab` | **Play Console'a yüklenecek asıl dosya.** Android App Bundle formatı, Google Play'in artık zorunlu tuttuğu format. |
-| `barkodkontrol-release.apk` | İmzalı release APK — Play Store'a yüklenmez, ama gerçek bir cihaza `adb install` ile veya dosyayı telefona atıp kurarak **son kullanıcı deneyimini test etmek** için kullanılır. |
-| `barkodkontrol-debug-test.apk` | İmza gerektirmeyen debug build — geliştirme sürecinde hızlı test için. Play Store'a **asla** yüklenmez. |
+| `barkodkontrol-release.aab` | **Play Console'a yüklenecek asıl dosya.** Android App Bundle formatı. |
+| `barkodkontrol-release.apk` | **İmzalı release APK** — telefona kurup test için (PM'in istediği dosya). Play'e AAB yüklenir; APK cihazda denemek içindir. |
 | `barkodkontrol-release.keystore` | Uygulamanın imzalama anahtarı (upload key). **Çok kritik, yedeklenmeli.** |
-| `keystore.properties` | Keystore'un şifreleri ve alias bilgisi (düz metin, sadece bu teslimat paketinde). |
+| `keystore.properties` | Keystore şifreleri ve alias (düz metin; sadece güvenli teslimat paketinde). |
+| `imza-yedek/` | Keystore + properties ikinci kopyası. |
+| `OKU-Beni-TESLIMAT.md` | Kısa teslimat özeti (PM / teslim için). |
 
-## 🔑 Keystore Bilgileri
+## Keystore Bilgileri
 
 - **Dosya:** `barkodkontrol-release.keystore`
 - **Alias:** `barkodkontrol`
-- **Store parolası / Key parolası:** `keystore.properties` içinde (ikisi de aynı — PKCS12 formatı store ve key parolasının aynı olmasını gerektiriyor)
-- **Geçerlilik:** 10.000 gün (~27 yıl)
-- **Sertifika SHA-256 fingerprint:** `FB:03:BF:FF:B6:E5:FC:6B:DC:17:89:D5:5C:B1:6D:9F:0F:4F:77:7B:20:2E:58:3D:6C:46:1D:4C:54:02:82:72`
+- **Store / Key parolası:** `keystore.properties` içinde
+- **Geçerlilik:** ~2053'e kadar
+- **Sertifika SHA-256:** `FB:03:BF:FF:B6:E5:FC:6B:DC:17:89:D5:5C:B1:6D:9F:0F:4F:77:7B:20:2E:58:3D:6C:46:1D:4C:54:02:82:72`
 
-⚠️ **Bu keystore'u kaybederseniz ya da şifresini unutursanız, uygulamanın Play Store'daki mevcut sürümüne asla güncelleme yayınlayamazsınız** — yeni bir keystore ile yeni bir uygulama olarak (yeni package adıyla) baştan yayınlamak gerekir. Bu dosyayı ve şifresini bir parola yöneticisine veya güvenli bir yedekleme sistemine kaydedin.
+Bu keystore kaybolursa veya şifresi unutulursa, Play'deki mevcut uygulamaya güncelleme yayınlanamaz. Keystore + şifreyi parola yöneticisine ve güvenli yedeğe kaydedin.
 
-## 🚀 Play Console'a Yükleme Adımları
+## Play Console'a Yükleme
 
-1. [Google Play Console](https://play.google.com/console) → uygulamanızı seçin (veya "Uygulama oluştur" ile yeni kayıt açın)
-   - Uygulama adı: **Barkod Kontrol** (veya istenen isim)
-   - Paket adı (`applicationId`): `com.barkodkontrol.app` — **bu alan sonradan değiştirilemez**, dikkatli kontrol edin
-2. Sol menüden **Test edin → Kapalı test** (veya doğrudan **Üretim**, hesabınıza bağlı) → **Yeni sürüm oluştur**
-3. `barkodkontrol-release.aab` dosyasını yükleyin
-4. Sürüm notları yazın, örn: "v1.2 — TR/EN dil seçimi, besin değeri düzeltmeleri, geçmiş skorunun profile göre güncellenmesi"
-5. Mağaza ekleri: **Uygulama içeriği** bölümünde zorunlu formları doldurun (aşağıdaki "Eksikler" kısmına bakın)
-6. İnceleme için gönderin
+1. [Google Play Console](https://play.google.com/console) → uygulama seç / oluştur  
+   - Paket adı: `com.barkodkontrol.app` (sonradan değişmez)
+2. **Test edin → Kapalı test** (veya üretim) → **Yeni sürüm**
+3. `barkodkontrol-release.aab` yükle
+4. Sürüm notu örn: `v1.4.0 — native kamera tarama, ikon, AdMob test, TR/EN`
+5. Mağaza ekleri / zorunlu formları doldur (aşağıdaki eksikler)
 
-### Yeni hesaplarda "12 test kullanıcısı / 14 gün" kuralı
-Google Play, yeni geliştirici hesaplarını üretime doğrudan geçirmeden önce kapalı test aşamasında en az 12 test kullanıcısı ve 14 gün beklemenizi isteyebilir. Bu, hesabın yaşına/geçmişine bağlıdır — sizin hesabınızda bu kısıtlama olup olmadığını Play Console ilk girişte size gösterecektir. Bu bizim kontrolümüz dışında, hesap sahibinin karşılaşacağı bir adım.
+Yeni hesaplarda Google bazen 12 test kullanıcısı / 14 gün kapalı test isteyebilir.
 
-## ⚠️ Play Console Başvurusu İçin Eksik/Dikkat Edilmesi Gerekenler
+## Play Başvurusu İçin Eksikler (PM)
 
-- **Gizlilik politikası URL'si (zorunlu):** Play Console, herkese açık bir gizlilik politikası linki ister. Uygulama içinde `/hakkinda` sayfasında metin var ama **canlı, herkese açık bir URL** gerekiyor. Seçenekler:
-  - Web sürümünü Vercel'e deploy edip `https://.../hakkinda` linkini kullanmak (kod hazır, `npm run build` sonrası `vercel deploy` yeterli)
-  - Ya da gizlilik metnini basit bir statik sayfa (GitHub Pages, Notion public page vb.) olarak yayınlamak
-- **Store görselleri (zorunlu):** Uygulama ikonu (512x512), öne çıkan görsel (1024x500), en az 2 ekran görüntüsü. Şu an uygulama Capacitor'ün varsayılan ikonunu kullanıyor — marka ikonu henüz hazırlanmadı.
-- **Kısa/uzun açıklama metni:** Play Store listeleme metni henüz yazılmadı.
-- **İçerik derecelendirmesi anketi, veri güvenliği formu:** Play Console içinde doldurulması gereken standart formlar (kameraya erişim, veri toplama vb. sorular — bu uygulama sadece localStorage kullanıyor, sunucuya kişisel veri göndermiyor, kamera sadece barkod okumak için kullanılıyor ve görüntü kaydedilmiyor).
+- Gizlilik politikası URL'si (herkese açık)
+- Store görselleri (512 ikon, feature graphic, ekran görüntüleri) — ikon kaynağı: `assets/play-store-icon-512.png`
+- Kısa / uzun mağaza açıklaması
+- İçerik derecelendirmesi + veri güvenliği formu
+- Gerçek AdMob ID'leri (`ADMOB.md`) — şu an test ID
 
-## 🛠️ Yerel Ortamda Yeniden Build Alma (İleride Güncelleme Gerekirse)
+## Yeniden Build
 
 ```bash
-# 1. Web build + Android projesine senkronize et
-npm run cap:sync
-
-# 2. android/ klasöründe imzalı AAB al
-cd android
-export JAVA_HOME=/opt/homebrew/opt/openjdk@21   # veya kurulu JDK yolunuz
-export ANDROID_HOME=/opt/homebrew/share/android-commandlinetools  # veya SDK yolunuz
-./gradlew bundleRelease
-
-# Çıktı: android/app/build/outputs/bundle/release/app-release.aab
+npm run release:android
+# Çıktı:
+#   android/app/build/outputs/bundle/release/app-release.aab
+#   android/app/build/outputs/apk/release/app-release.apk
 ```
 
-`versionCode` ve `versionName` değerlerini her yeni sürümde `android/app/build.gradle` içinde artırmanız gerekir (Play Console aynı `versionCode` ile ikinci bir yükleme kabul etmez).
+Her yeni Play yüklemesinde `android/app/build.gradle` içinde `versionCode` artırılmalı.

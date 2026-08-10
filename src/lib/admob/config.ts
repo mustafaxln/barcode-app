@@ -36,13 +36,14 @@ export function getInterstitialAdUnitId(): string {
 }
 
 /**
- * Gerçek (production) birim ID'leri henüz yoksa isTesting:true gönderiyoruz —
- * böylece yanlışlıkla canlı ID'siz "test gibi görünen" reklamlarla politika ihlali olmaz.
+ * SDK test modu: yalnızca banner hâlâ Google test birimindeyse açık.
+ * Production banner + Google resmi test interstitial birlikte kullanılabilir —
+ * banner canlı doldurulur, interstitial test birimiyle test reklamı kalır.
+ * (Önceki "banner VEYA interstitial testse" mantığı production banner'ı da
+ * initializeForTesting=true yapıyordu; bu yüzden gevşetildi.)
  */
 export function shouldUseAdTestMode(): boolean {
-  const banner = getBannerAdUnitId();
-  const interstitial = getInterstitialAdUnitId();
-  return banner === TEST_BANNER || interstitial === TEST_INTERSTITIAL;
+  return getBannerAdUnitId() === TEST_BANNER;
 }
 
 /** Kaç ürün detayı açılışında bir interstitial gösterilsin (1 = her seferinde). */

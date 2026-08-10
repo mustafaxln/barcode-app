@@ -1,0 +1,43 @@
+# Free plan: ~7 gün hareketsizlikte proje pause olur.
+# Bu job haftada 2 kez products tablosuna küçük bir SELECT atarak aktivite üretir.
+#
+# Kurulum (bir kez):
+# GitHub repo → Settings → Secrets and variables → Actions
+#   SUPABASE_URL       = https://xxxx.supabase.co
+#   SUPABASE_ANON_KEY  = anon/public key
+name: Supabase keep-alive
+
+on:
+  schedule:
+    # Pazartesi ve Perşembe 09:00 UTC (~12:00 TR)
+    - cron: '0 9 * * 1,4'
+  workflow_dispatch: # Actions sekmesinden elle de çalıştırılabilir
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST (products)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SUPABASE_URL:-}" ] || [ -z "${SUPABASE_ANON_KEY:-}" ]; then
+            echo "SUPABASE_URL / SUPABASE_ANON_KEY secret'ları eksik."
+            exit 1
+          fi
+          URL="${SUPABASE_URL%/}/rest/v1/products?select=barcode&limit=1"
+          code=$(curl -sS -o /tmp/supabase-keepalive-body.txt -w "%{http_code}" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            -H "Accept: application/json" \
+            "$URL")
+          echo "HTTP $code"
+          head -c 500 /tmp/supabase-keepalive-body.txt || true
+          echo
+          # 200 = OK, 206 = partial (Range); ikisi de aktivite sayılır
+          case "$code" in
+            200|206) echo "Keep-alive OK" ;;
+            *) echo "Keep-alive failed"; exit 1 ;;
+          esac
