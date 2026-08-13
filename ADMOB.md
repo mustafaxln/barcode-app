@@ -1,56 +1,68 @@
 # Google AdMob Entegrasyonu
 
-Uygulama, Capacitor native Android kabuğunda **Google AdMob** ile reklam gösterir.
+Uygulama, Capacitor native Android kabuğunda **Google AdMob** ile reklam gösterir.  
 Web tarayıcıda reklam **yok** (native SDK gerekir).
 
-## Ne eklendi?
+## Ne var?
 
 | Reklam | Ne zaman | Nerede |
 |---|---|---|
 | **Banner** (üst şerit) | Uygulama açılınca | Tüm ekranlar, üstte |
 | **Interstitial** (tam ekran) | Her 3. ürün detayı açılışında | Ürün sayfası |
 
-Paket: `@capacitor-community/admob` (Capacitor 8 uyumlu)
+Paket: `@capacitor-community/admob` (Capacitor 8)
 
-## PM'den alınması gereken ID'ler
+## Kimlikler nereye yazılır?
 
-AdMob Console'da (https://admob.google.com) Android uygulaması oluşturup şunları verin:
+| ID | Dosya |
+|---|---|
+| **App ID** `ca-app-pub-…~…` | `android/app/src/main/res/values/strings.xml` → `admob_app_id` |
+| **Banner Ad Unit** | `.env` → `VITE_ADMOB_BANNER_ID` |
+| **Interstitial Ad Unit** | `.env` → `VITE_ADMOB_INTERSTITIAL_ID` |
 
-1. **App ID** — `ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY`  
-   → `android/app/src/main/res/values/strings.xml` içindeki `admob_app_id`
-2. **Banner Ad Unit ID** — `ca-app-pub-XXXXXXXXXXXXXXXX/ZZZZZZZZZZ`  
-   → `.env` → `VITE_ADMOB_BANNER_ID=...`
-3. **Interstitial Ad Unit ID**  
-   → `.env` → `VITE_ADMOB_INTERSTITIAL_ID=...`
+`.env` örneği: `.env.example`. Birimler boşsa Google **resmi test** birimleri kullanılır (`src/lib/admob/config.ts`).
 
-Şu an hepsi **Google resmi TEST ID** ile çalışıyor — gerçek para/trafik üretmez, hesabı ban riskinden korur.
+**Durum:** Production App ID `strings.xml` içinde tanımlı. Banner / interstitial production birimleri yerel `.env` ile verilir (repoya commit edilmez). Play yayını sonrası AdMob’da uygulamayı store listing’e bağlayın; yeni birimlerde dolum gecikebilir.
 
-## Gerçek ID'leri bağlama adımları
+## Build
 
-1. `android/app/src/main/res/values/strings.xml` → `admob_app_id` değerini gerçek App ID ile değiştir
-2. Proje kökünde `.env` dosyasına ekle:
-   ```
-   VITE_ADMOB_BANNER_ID=ca-app-pub-.../...
-   VITE_ADMOB_INTERSTITIAL_ID=ca-app-pub-.../...
-   ```
-3. Yeniden build:
-   ```bash
-   npm run release:android
-   ```
-4. `teslimat-mobil/` içindeki AAB/APK'yı güncelle
+```bash
+# .env dolu olsun, sonra:
+npm run release:android
+```
 
-Reklamları tamamen kapatmak için: `VITE_ADMOB_ENABLED=false`
+Reklamları kapatmak: `VITE_ADMOB_ENABLED=false`
 
 ## Dosyalar
 
-- `src/lib/admob/config.ts` — ID'ler, throttle ayarı
+- `src/lib/admob/config.ts` — birimler, throttle (`INTERSTITIAL_EVERY_N_PRODUCT_VIEWS = 3`)
 - `src/lib/admob/index.ts` — init / banner / interstitial
-- `src/components/AdMobBootstrap.tsx` — uygulama açılışında başlatma
+- `src/components/AdMobBootstrap.tsx` — açılışta başlatma
 - `android/.../AndroidManifest.xml` — `APPLICATION_ID` meta-data
 - `android/.../strings.xml` — `admob_app_id`
 
-## Notlar
+## app-ads.txt (uygulama sahipliği)
 
-- Play Console'da reklamlı uygulama için gizlilik politikası ve AdMob/UMP (GDPR) mesajlarının yapılandırılması gerekir.
-- Test cihazında gerçek birim ID ile deneme yaparken AdMob'da cihazı "test device" olarak ekleyin; aksi halde politika ihlali riski olur.
-- Banner üstte; alt NavBar ile çakışmaz. Banner yüksekliği `--admob-banner-offset` CSS değişkeniyle içeriği iter.
+AdMob, reklam kısıtını kaldırmak için geliştirici sitesinin kökünde `app-ads.txt` ister.
+
+- Dosya: `docs/app-ads.txt` (GitHub Pages `/docs` → site kökü)
+- Canlı URL: https://mustafaxln.github.io/barcode-app/app-ads.txt
+- Play / AdMob’daki **web sitesi** alanı bu köke işaret etmeli:  
+  `https://mustafaxln.github.io/barcode-app`  
+  (privacy.html değil — `app-ads.txt` kökte aranır)
+
+İçerik (PM):
+
+```
+pub-7672443581181379, DIRECT, f08c47fec0942fa0
+```
+
+Crawl birkaç saat–1 gün sürebilir; AdMob’da “app-ads.txt durumunu kontrol et” ile yenile.
+
+## Play / uyumluluk
+
+- Play: **Ads = Yes**, Data safety’de cihaz kimliği + uygulama işlemleri (reklam), reklam kimliği beyanı → **Reklam veya pazarlama**
+- Gizlilik politikasında AdMob belirtilmeli (`docs/privacy.html`)
+- Test cihazında production birimle denemeden önce AdMob’da cihazı test device yapın
+- Banner üstte; `--admob-banner-offset` içeriği iter (alt NavBar ile çakışmaz)
+- EEA için UMP / consent mesajları AdMob Console’dan yapılandırılmalı
