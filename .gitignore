@@ -47,3 +47,10 @@ keystore.properties
 
 # Mobil teslimat paketi (AAB/APK/keystore) - repoya değil, ayrı ve güvenli kanaldan iletilecek
 teslimat-mobil/
+BiteCode-teslimat*/
+**/BiteCode-teslimat*.zip
+*.aab
+*.apk
+
+# Ham / yedek ekran görüntüleri (Play upload seti commit edilebilir)
+ekran-goruntuleri/play-phone/

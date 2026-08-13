@@ -1,10 +1,8 @@
 /**
  * AdMob kimlikleri.
  *
- * - `APP_ID` native tarafta (`android/.../strings.xml` → `admob_app_id`) tutulur; JS buradan
- *   okuyamaz. PM gerçek App ID'yi verdiğinde strings.xml güncellenir.
- * - Banner / interstitial birim ID'leri Vite env ile override edilebilir; boşsa Google'ın
- *   resmi TEST birimleri kullanılır (gerçek trafik/para üretmez, hesabı riske atmaz).
+ * - `APP_ID` native tarafta (`android/.../strings.xml` → `admob_app_id`) tutulur.
+ * - Banner / interstitial birim ID'leri `.env` ile verilir; boşsa Google resmi TEST birimleri.
  *
  * Google test ID'leri: https://developers.google.com/admob/android/test-ads
  */
@@ -36,14 +34,13 @@ export function getInterstitialAdUnitId(): string {
 }
 
 /**
- * SDK test modu: yalnızca banner hâlâ Google test birimindeyse açık.
- * Production banner + Google resmi test interstitial birlikte kullanılabilir —
- * banner canlı doldurulur, interstitial test birimiyle test reklamı kalır.
- * (Önceki "banner VEYA interstitial testse" mantığı production banner'ı da
- * initializeForTesting=true yapıyordu; bu yüzden gevşetildi.)
+ * SDK test modu: yalnızca production birim henüz bağlanmamışsa açık.
+ * Banner veya interstitial Google resmi test ID'sindeyse initializeForTesting=true.
  */
 export function shouldUseAdTestMode(): boolean {
-  return getBannerAdUnitId() === TEST_BANNER;
+  return (
+    getBannerAdUnitId() === TEST_BANNER || getInterstitialAdUnitId() === TEST_INTERSTITIAL
+  );
 }
 
 /** Kaç ürün detayı açılışında bir interstitial gösterilsin (1 = her seferinde). */

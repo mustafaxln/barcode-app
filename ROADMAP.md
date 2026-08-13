@@ -227,26 +227,27 @@ Süre kısıtı nedeniyle v1 kapsamı dışına alınanlar — MVP oturduktan so
 - [ ] Ürün karşılaştırma ekranı
 - [ ] Supabase Storage ile kullanıcı tarafından yüklenen ürün görselleri
 - [ ] iOS (Capacitor ile App Store) — şu an sadece Android hedefleniyor
-- [ ] Native barkod plugin'ine geçiş (`@capacitor-mlkit/barcode-scanning`) — eğer WebView kamera performansı/izinleri sorun çıkarırsa
+- [x] Native barkod plugin (`@capacitor-mlkit/barcode-scanning`) — Android'de aktif; web'de ZXing yedek
 
 ---
 
 ## 📌 Takip Notları
 - Bu plan PM'in "1-2 gün, web app + Vercel + Supabase + Capacitor" talimatı üzerine v1'den güncellendi (önceki React Native/Expo + monorepo yaklaşımı terk edildi).
-- Uygulama biz tarafımızdan yayınlanmayacak, **teslim edilecek** — Play Console / 12 tester-14 gün konusu teslim alan tarafın sorumluluğu, bizim sprint'imizi bloklamıyor.
-- Bir yerde tıkanırsak (CORS, Capacitor kamera izni, keystore vb.) hemen burada işaretleyip soracağız, sprint'i durdurmayacağız.
-- Açık/varsayılan karar: v1'de Supabase Auth **yok**, hassasiyet/geçmiş/favori localStorage'da tutulacak (hız için varsayılan, itiraz olursa değişir).
+- Açık/varsayılan karar: v1'de Supabase Auth **yok**, hassasiyet/geçmiş/favori localStorage'da.
+- Ürün adı **BiteCode**; paket id `com.barkodkontrol.app` değişmez.
 
-### 🟢 Şu Anki Durum (v1.3 — AdMob entegre, teslimata hazır)
-Blok 1-11 + AdMob tamamlandı. Reklamlar native Android'de çalışır (banner üstte, interstitial her 3. ürün detayında). Şu an Google **test ID**'leri bağlı; PM gerçek App ID / Ad Unit ID verince `ADMOB.md` adımlarıyla değiştirilir. Mobil paket: **`versionCode 4` / `versionName 1.3`** (`teslimat-mobil/`).
+### 🟢 Şu Anki Durum (v1.5.4 — BiteCode, Play hazırlığı)
+Blok 1-11 + AdMob + ML Kit + BiteCode markası tamam.  
+Mobil: **`versionCode 12` / `versionName 1.5.4`**. Production AdMob App ID `strings.xml`'de; birimler `.env`.  
+Gizlilik: `docs/privacy.html` → https://mustafaxln.github.io/barcode-app/privacy.html  
+Mağaza varlıkları: `assets/bitecode-brand/`, `ekran-goruntuleri/play-store-upload/`.
 
-**Kalan kullanıcı aksiyonları (opsiyonel/ileri adım):**
-1. Vercel'e deploy (opsiyonel — PM notuna göre web versiyonuna gerek olmayabilir; sadece gizlilik politikası URL'si için gerekebilir)
-2. Gerçek bir Android telefonda APK'yı kurup barkod tarama akışını fiilen test etmek (sandbox'ta fiziksel cihaz/emülatör yok)
-3. Play Store materyalleri: ikon/splash özelleştirme, öne çıkan görsel, ekran görüntüleri, açıklama metni
-4. Play Console'a giriş + AAB yükleme (bkz. `README_YAYIN.md`) — hesap sahibinin kendi hesabında yapması gereken adım
+**Kalan (yayın süreci):**
+1. Kapalı test (gerekirse ~12 testçi / ~14 gün) → Üretim incelemesi
+2. AdMob’da store listing bağlama + reklam dolumu
+3. Şirket GitHub’ına taşıma: Actions secret’larını yeniden tanımla; keystore’u Git’e koyma
 
-**Devam eden iş: Gerçek Open Food Facts verisiyle QA/hata ayıklama turu.** Supabase bağlandıktan sonra gerçek ürünlerle test ederken şu sorunlar bulunup düzeltildi:
+**Geçmiş QA düzeltmeleri:** Supabase bağlandıktan sonra gerçek ürünlerle test ederken şu sorunlar bulunup düzeltildi:
 - İçindekiler metninde ondalık virgül hatası (Fransızca "7,4%" gibi ifadeler yanlış bölünüyordu) → düzeltildi
 - İçindekiler dil önceliği (tr → en → orijinal dil) + OFF'un bazı girişlerinde etikette ilgisiz metin (üretici bilgisi, SKT vb.) kopyalanmış olması → `extractIngredientsSection` ile temizlendi
 - Bazı ürünlerde düz `ingredients_text` boş ama yapılandırılmış `ingredients` listesi mevcut → fallback eklendi
@@ -254,4 +255,4 @@ Blok 1-11 + AdMob tamamlandı. Reklamlar native Android'de çalışır (banner �
 - `@zxing/library`'nin normal tarama akışında (barkod her karede hemen bulunamayınca) konsolu spam'leyen zararsız iç uyarısı (`MultiFormatReader: non-ReaderException`) tarama ekranında susturuldu
 - `PROJE-REHBERI.md` oluşturuldu — projenin tüm mimarisini, dosya/klasör yapısını, veri akışını örneklerle anlatan kapsamlı bir rehber
 
-Bu tur hâlâ sürüyor — kullanıcı farklı barkodlarla test edip bulduğu sorunları bildiriyor, birlikte kök nedenini bulup düzeltiyoruz. Bu üçü dışında uygulama fonksiyonel olarak tamamlanmış durumda: barkod tarama, ürün verisi (OFF + Supabase cache), hassasiyet profili, uygunluk skoru, alerjen uyarısı, katkı maddesi açıklamaları, geçmiş, favoriler, manuel ürün ekleme, ilk açılış onay ekranı ve Hakkında sayfası — hepsi kodlandı, build/lint temiz, `npm run dev` ile yerelde uçtan uca test edilebilir.
+Uygulama fonksiyonel olarak tamamlanmış durumda: barkod tarama, ürün verisi (OFF + Supabase cache), hassasiyet profili, uygunluk skoru, alerjen uyarısı, katkı maddesi açıklamaları, geçmiş, favoriler, manuel ürün ekleme, AdMob, BiteCode markası, gizlilik sayfası.

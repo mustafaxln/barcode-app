@@ -1,13 +1,13 @@
-# Proje Rehberi — Barkodlu Ürün İçerik Kontrol Uygulaması
+# Proje Rehberi — BiteCode
 
 Bu dosya, projenin **şu ana kadar ne olduğunu, hangi kodun ne işe yaradığını, hangi
 dosyayı biz yazdık / hangisi otomatik oluşturuldu ve verinin nereden nereye aktığını**
 örneklerle anlatır. Amaç: kod tabanına hiç bakmadan bu dosyayı okuyunca projeyi
 anlayabilmeniz.
 
-> Güncel durum ve gün-gün ilerleme planı için `ROADMAP.md`'ye, manuel test
-> checklist'i için `TESTING.md`'ye bakabilirsiniz. Bu dosya ise "mimari + kod
-> haritası" niteliğinde, kalıcı bir referans.
+> Ürün adı: **BiteCode** · paket: `com.barkodkontrol.app` · sürüm: **1.5.4**  
+> Güncel durum: `ROADMAP.md` · test: `TESTING.md` · Play: `README_YAYIN.md` · AdMob: `ADMOB.md`  
+> Çelişen eski cümle olursa `README.md` / `ROADMAP.md` güncel kabul edilir.
 
 ---
 
@@ -29,16 +29,16 @@ hassasiyetlerine göre bir **uygunluk skoru** hesaplar → geçmişe kaydeder.
 | Stil | Tailwind CSS v4 | Class bazlı, hızlı UI geliştirme |
 | Sayfa geçişleri | React Router v7 | Tek sayfa uygulaması (SPA) içinde `/urun/:barkod` gibi rotalar |
 | Sunucu verisi / cache | TanStack React Query | API çağrılarını cache'leyip yönetiyor |
-| Barkod okuma | `@zxing/library` | Tarayıcının kamerasından (`getUserMedia`) canlı barkod okuma |
+| Barkod (Android) | `@capacitor-mlkit/barcode-scanning` | Native kamera tarama |
+| Barkod (web yedek) | `@zxing/library` | Tarayıcı / fallback |
 | Ürün verisi | Open Food Facts (dış API) | Ücretsiz, herkese açık, milyonlarca ürün |
-| Veritabanı (opsiyonel) | Supabase (Postgres) | Henüz bağlanmadı — cache + manuel eklenen ürünler için |
-| Cihazda veri | `localStorage` | Hassasiyetler, geçmiş, favoriler (hesap sistemi yok, v1) |
-| Mobil pakete çevirme | Capacitor | Web uygulamasını Android APK/AAB'ye saran katman |
+| Veritabanı | Supabase (Postgres) | Ürün cache + manuel eklenen ürünler |
+| Cihazda veri | `localStorage` | Hassasiyetler, geçmiş, favoriler (hesap yok) |
+| Reklam | Google AdMob | Banner + interstitial (yalnızca native) |
+| Mobil pakete çevirme | Capacitor 8 | Web → Android APK/AAB |
 
-**Önemli mimari karar:** Bu bir "backend + frontend" projesi DEĞİL. Ayrı bir sunucu
-kodumuz (Node/Express vb.) yok. Tarayıcı (veya Android WebView) doğrudan Open Food
-Facts'in herkese açık API'sine istek atıyor. Supabase de bir "backend" değil, sadece
-isteğe bağlı bir bulut veritabanı.
+**Önemli mimari karar:** Ayrı Node/Express backend yok. İstemci doğrudan Open Food Facts
+API'sine ve Supabase'e konuşur.
 
 ---
 
@@ -350,11 +350,11 @@ bulamadığı ürünleri manuel girdiğinde saklıyoruz.
 bir Android WebView içine sarıyor. Yani Android uygulaması, ayrı bir kod tabanı
 değil — aynı `src/` klasöründeki kod, sadece bir native kabuk içinde çalışıyor.
 
-- `capacitor.config.json` → uygulama adı, paket id'si (`com.barkodkontrol.app`),
+- `capacitor.config.json` → uygulama adı (**BiteCode**), paket id (`com.barkodkontrol.app`),
   hangi klasörün paketleneceği (`dist`).
-- `android/` klasörü → `npx cap add android` komutuyla otomatik oluşturuldu.
-- **Elle eklediğimiz tek native değişiklik:** `android/app/src/main/AndroidManifest.xml`
-  içine kamera izni satırları:
+- AdMob App ID: `android/app/src/main/res/values/strings.xml` → `admob_app_id`
+- Native barkod: `@capacitor-mlkit/barcode-scanning` (`src/lib/nativeBarcodeScanner.ts`)
+- `android/` klasörü → `npx cap add android` ile oluşturuldu; Manifest’e kamera/internet + AdMob meta eklendi.
 
 ```40:41:android/app/src/main/AndroidManifest.xml
     <uses-permission android:name="android.permission.INTERNET" />

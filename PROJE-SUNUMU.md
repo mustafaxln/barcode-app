@@ -1,8 +1,9 @@
-# Barkod İçerik Kontrol — Proje Sunumu
+# BiteCode — Proje Sunumu
 
 Bu dosya, projeyi **baştan sona** anlatır. Okuyan kişi mimariyi, veri akışını, ekranları, skorlamayı, mobil paketi ve bilinçli kararları anlayabilecek seviyeye gelsin diye yazıldı.
 
-> Kod haritası için ayrıca `PROJE-REHBERI.md` · ilerleme için `ROADMAP.md` · cihaz testi için `TESTING.md` · Play Store teslimatı için `README_YAYIN.md`.
+> Kod haritası: `PROJE-REHBERI.md` · durum: `ROADMAP.md` · test: `TESTING.md` · Play: `README_YAYIN.md` · AdMob: `ADMOB.md` · gizlilik: `docs/privacy.html`  
+> **Ürün adı:** BiteCode · **Paket:** `com.barkodkontrol.app` · **Sürüm:** 1.5.4 (versionCode 12)
 
 ---
 
@@ -12,12 +13,13 @@ Kullanıcı bir gıda ürününün **barkodunu** kamerayla veya elle girer. Uygu
 
 **Hedef kullanıcı:** Alerjisi olanlar, vegan / vejetaryen / glutensiz / laktozsuz diyet takip edenler, şeker–tuz–yağ takibi yapanlar.
 
-**v1 kapsamı:**
-- Web uygulaması (React) + Android sarmalama (Capacitor)
-- Ürün verisi: Open Food Facts (OFF)
-- Cache + manuel ekleme: Supabase
+**Kapsam (v1.5.x):**
+- Web (React) + Android (Capacitor 8)
+- Ürün: Open Food Facts + Supabase cache
 - Hassasiyet / geçmiş / favori: `localStorage` (hesap yok)
-- Play Console’a biz girmiyoruz; imzalı AAB/APK teslim paketi hazır
+- Native barkod: ML Kit; web yedek: ZXing
+- AdMob banner + interstitial
+- Play mağaza varlıkları + gizlilik sayfası hazır
 
 ---
 
@@ -30,10 +32,12 @@ Kullanıcı bir gıda ürününün **barkodunu** kamerayla veya elle girer. Uygu
 | Stil | Tailwind CSS v4 | Tasarım / responsive |
 | Routing | React Router v7 | SPA sayfa geçişleri |
 | Sunucu state | TanStack Query | Ürün sorgusu cache / refetch |
-| Barkod | `@zxing/library` | Kamera ile barkod okuma |
+| Barkod (Android) | `@capacitor-mlkit/barcode-scanning` | Native kamera tarama |
+| Barkod (web yedek) | `@zxing/library` | Tarayıcı / fallback |
 | Ürün API | Open Food Facts | Harici ürün veritabanı |
 | DB | Supabase (Postgres) | Ürün cache + manuel gönderimler |
 | Cihaz verisi | `localStorage` | Profil, geçmiş, favori |
+| Reklam | Google AdMob (`@capacitor-community/admob`) | Banner + interstitial |
 | Mobil | Capacitor 8 + Android | Web’i APK/AAB’ye sarma |
 
 **Kritik mimari karar:** Ayrı bir Node/Express backend yok. Tarayıcı / Android WebView doğrudan OFF API’sine ve Supabase’e konuşur.
@@ -71,13 +75,13 @@ barcode-app/
 │   └── lib/                      ← İş mantığı (API, skor, storage)
 ├── supabase/migrations/          ← DB şeması + RLS
 ├── android/                      ← Capacitor native Android projesi
+├── docs/privacy.html             ← Gizlilik (GitHub Pages)
+├── assets/bitecode-brand/        ← İkon + feature graphic
+├── ekran-goruntuleri/play-store-upload/
+├── ADMOB.md / README_YAYIN.md / TESTING.md
 ├── teslimat-mobil/               ← AAB/APK/keystore (gitignore’da)
-├── public/                       ← Statik ikon
-├── PROJE-SUNUMU.md               ← Bu dosya
-├── PROJE-REHBERI.md              ← Kod detay rehberi
-├── ROADMAP.md                    ← Sprint planı / durum
-├── TESTING.md                    ← Manuel test checklist
-└── README_YAYIN.md               ← Play Store yayın adımları
+├── PROJE-SUNUMU.md / PROJE-REHBERI.md / ROADMAP.md
+└── README.md
 ```
 
 ### Sayfalar (`src/pages/`)
@@ -319,10 +323,13 @@ flowchart LR
 | Öğe | Değer |
 |---|---|
 | Paket adı | `com.barkodkontrol.app` |
-| Uygulama adı | Barkod İçerik Kontrol |
-| Kamera | `AndroidManifest.xml` içinde `CAMERA` izni |
+| Uygulama adı | **BiteCode** |
+| Sürüm | versionCode **12** / versionName **1.5.4** |
+| Kamera | `CAMERA` izni + ML Kit native tarama |
 | Sync komutu | `npm run cap:sync` |
-| Teslim klasörü | `teslimat-mobil/` (repoya girmez) |
+| Release | `npm run release:android` |
+| Teslim klasörü | `teslimat-mobil/` / `BiteCode-teslimat-*` (repoya girmez) |
+| Gizlilik | `docs/privacy.html` → GitHub Pages |
 
 Web’de yapılan her değişiklik mobilde görünmesi için:
 1. `npm run cap:sync`
@@ -373,9 +380,9 @@ Supabase şeması: `supabase/migrations/0001_init.sql` dosyasını SQL Editor’
 ### Bilinen sınırlar
 
 - OFF’ta eksik ürünler boş gelebilir → kullanıcı tamamlama akışı
-- Web’de (özellikle macOS) kamera ışığının geç sönmesi görülebilir; Android WebView’da genelde sorun değil
-- Store ikonu / splash / mağaza metinleri henüz marka özelleştirmesi bekliyor
+- Manuel eklenen ürünler `verified: false` ile hemen cache’e yazılabilir (moderasyon Supabase dashboard)
 - iOS paketi v1 kapsamı dışı
+- AdMob dolumu Play listing + hesap hazır olana kadar zayıf olabilir
 
 ---
 
@@ -383,17 +390,18 @@ Supabase şeması: `supabase/migrations/0001_init.sql` dosyasını SQL Editor’
 
 | Soru | Dosya |
 |---|---|
-| Barkod nasıl okunuyor? | `src/pages/ScanPage.tsx` |
+| Barkod nasıl okunuyor? | `src/pages/ScanPage.tsx` + `src/lib/nativeBarcodeScanner.ts` |
 | Ürün nereden geliyor? | `src/lib/productRepository.ts` + `openFoodFacts.ts` |
 | Skor nasıl çıkıyor? | `src/lib/scoring.ts` |
 | Eksik ürün tamamlama? | `src/pages/ProductPage.tsx` + `manualSubmissions.ts` |
 | Profil seçimleri? | `src/pages/ProfilePage.tsx` + `sensitivities.ts` |
+| AdMob? | `src/lib/admob/` + `ADMOB.md` |
 | Rotalar? | `src/App.tsx` |
 | DB şeması? | `supabase/migrations/0001_init.sql` |
-| Android paket id? | `capacitor.config.json` + `android/app/build.gradle` |
+| Android paket / sürüm? | `capacitor.config.json` + `android/app/build.gradle` |
 
 ---
 
 ## 13) Tek sayfalık özet
 
-**Barkod İçerik Kontrol**, React + Vite web uygulamasıdır; Capacitor ile Android’e sarılır. Barkod okununca önce Supabase cache’e, yoksa Open Food Facts’e bakılır. Sonuç kullanıcı hassasiyetleriyle skorlanır; geçmiş/favori/profil cihazda tutulur. OFF verisi eksikse kullanıcı tamamlayabilir. Ayrı backend yoktur; teslimat imzalı AAB/APK + yayın rehberi ile yapılır.
+**BiteCode**, React + Vite web uygulamasıdır; Capacitor ile Android’e sarılır. Barkod okununca önce Supabase cache’e, yoksa Open Food Facts’e bakılır. Sonuç kullanıcı hassasiyetleriyle skorlanır; geçmiş/favori/profil cihazda tutulur. OFF verisi eksikse kullanıcı tamamlayabilir. Ayrı backend yoktur; reklam AdMob ile native’de gösterilir; Play teslimatı AAB + `README_YAYIN.md` ile yapılır.

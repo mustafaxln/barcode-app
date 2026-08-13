@@ -1,7 +1,7 @@
 {
   "name": "barcode-app",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.5.4",
+  "description": "BiteCode — food barcode scanner (ingredients, nutrition, personal suitability)",
   "main": "index.js",
   "scripts": {
     "dev": "vite",

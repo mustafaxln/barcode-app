@@ -1,47 +1,54 @@
-# Manuel Test Checklist
+# Manuel Test Checklist — BiteCode
 
-Bu proje sandbox ortamında geliştirildiği için kamera erişimi gibi bazı akışlar gerçek bir
-tarayıcıda/cihazda test edilmedi. Yayına almadan önce (veya devraldığınızda) şu adımları
-gerçek bir telefon/laptop tarayıcısında bir kez geçin.
+Yayın / teslim öncesi gerçek telefonda (veya emülatör + Play dahili test) bir kez geç.
 
 ## Kurulum
-- [ ] `npm install` sonrası `npm run dev` hatasız açılıyor
-- [ ] `.env` dosyası dolduruldu, konsolda Supabase uyarısı görünmüyor (veya Supabase olmadan da
-      OFF üzerinden ürün akışı çalışıyor)
 
-## Tarama Akışı
-- [ ] `/` sayfasında kamera izni isteniyor, izin verince canlı görüntü geliyor
-- [ ] Gerçek bir ürün barkodu kameraya gösterildiğinde otomatik yakalanıp `/urun/:barkod`'a
-      yönlendiriyor
-- [ ] Kamera izni reddedilirse anlamlı bir hata mesajı görünüyor
-- [ ] Barkodu elle yazıp "Ara" ile de arama çalışıyor
+- [ ] `npm install` sonrası `npm run dev` hatasız
+- [ ] `.env` dolu (Supabase); konsolda kritik uyarı yok
+- [ ] Android: `npm run cap:sync` veya Play dahili/kapalı test APK’sı kurulu
+- [ ] Uygulama adı cihaz menüsünde **BiteCode**
 
-## Ürün Detayı
-- [ ] Bilinen bir barkod (örn. `3017620422003` — Nutella) için ürün adı, marka, görsel,
-      içindekiler listesi, besin değerleri tablosu doğru geliyor
-- [ ] Bilinmeyen/rastgele bir barkod için "Ürün bulunamadı" ekranı ve "Sen Ekle" linki çalışıyor
-- [ ] Favorilere ekle/kaldır butonu çalışıyor ve `/favoriler`'da görünüyor
-- [ ] Sayfa yenilendiğinde favoriler kayboluyor mu diye kontrol edin (kaybolmamalı —
-      localStorage'da tutuluyor)
+## Tarama
 
-## Hassasiyet Profili ve Skor
-- [ ] `/profil`'de bir alerjen seçip (örn. Kuruyemiş) Nutella'yı tekrar açtığınızda kırmızı
-      "Alerjen Uyarısı" banner'ı ve 0 puan "Uygun Değil" görünüyor
-- [ ] Alerjeni kaldırıp tekrar açtığınızda skorun normale döndüğü görülüyor
-- [ ] "Neden bu skor?" linkine basınca sebep listesi açılıyor/kapanıyor
+- [ ] Native Android’de ML Kit kamera tarama çalışıyor
+- [ ] İzin reddinde anlamlı mesaj + manuel barkod alanı kullanılabiliyor
+- [ ] Elle barkod (min. 6 karakter) ile arama çalışıyor
+- [ ] Bilinen barkod (örn. `3017620422003` Nutella) ürün sayfasına gidiyor
+
+## Ürün detayı
+
+- [ ] Ad, marka, görsel, içindekiler, besin değerleri geliyor
+- [ ] Bilinmeyen barkod → “bulunamadı” + manuel ekle
+- [ ] Favori ekle/kaldır; `/favoriler` ve uygulama yeniden açılışında kalıcı
+- [ ] Kaynak satırı (Open Food Facts / önbellek) görünüyor
+
+## Hassasiyet / skor
+
+- [ ] Profilde alerjen seç → ilgili üründe uyarı + düşük skor
+- [ ] Alerjeni kaldır → skor normale dönüyor
+- [ ] “Neden bu skor?” açılıyor
 
 ## Geçmiş
-- [ ] Bir ürün taradıktan sonra `/gecmis`'te göründüğü doğrulanıyor
-- [ ] Geçmişten bir ürüne tıklayıp tekrar açmak **yeni bir geçmiş kaydı oluşturmuyor**
-- [ ] "Temizle" butonu geçmişi boşaltıyor
 
-## Manuel Ürün Ekleme
-- [ ] Bulunamayan bir ürün için formu doldurup gönderince (Supabase kuruluysa) Supabase
-      `manual_submissions` tablosunda satır oluştuğu doğrulanıyor
+- [ ] Tarama sonrası `/gecmis`’te görünüyor
+- [ ] Geçmişten tekrar açmak yeni kayıt üretmiyor
+- [ ] Temizle çalışıyor
+
+## Manuel ekleme
+
+- [ ] Form gönderimi (Supabase kuruluysa) `manual_submissions` (+ gerekirse `products`) satırı oluşturuyor
+- [ ] Aynı barkodu başka oturumda arayınca (verified=false manual) görülebiliyor
+
+## Reklam (yalnızca native Android)
+
+- [ ] Üstte banner alanı (dolum gecikmeli olabilir)
+- [ ] 3. ürün detayında interstitial denemesi (test device veya test ID ile doğrula)
+- [ ] `VITE_ADMOB_ENABLED=false` iken reklam yok
 
 ## Genel
-- [ ] İlk açılışta "Başlamadan Önce" sorumluluk reddi ekranı çıkıyor, "Anladım" sonrası tekrar
-      çıkmıyor
-- [ ] `/hakkinda` sayfası açılıyor
-- [ ] Küçük ekranda (telefon) alt navigasyon, büyük ekranda (masaüstü) üst navigasyon şeklinde
-      düzgün görünüyor
+
+- [ ] İlk açılış disclaimer → Anladım sonrası tekrar çıkmıyor
+- [ ] `/hakkinda` açılıyor; tıbbi tavsiye değil uyarısı var
+- [ ] TR / EN dil değişimi
+- [ ] Alt navigasyon telefon boyutunda düzgün
