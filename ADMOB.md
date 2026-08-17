@@ -43,21 +43,25 @@ Reklamları kapatmak: `VITE_ADMOB_ENABLED=false`
 
 ## app-ads.txt (uygulama sahipliği)
 
-AdMob, reklam kısıtını kaldırmak için geliştirici sitesinin kökünde `app-ads.txt` ister.
+AdMob dosyayı **domain kökünde** arar (path’i yok sayar).
 
-- Dosya: `docs/app-ads.txt` (GitHub Pages `/docs` → site kökü)
-- Canlı URL: https://mustafaxln.github.io/barcode-app/app-ads.txt
-- Play / AdMob’daki **web sitesi** alanı bu köke işaret etmeli:  
-  `https://mustafaxln.github.io/barcode-app`  
-  (privacy.html değil — `app-ads.txt` kökte aranır)
+| URL | AdMob görür mü? |
+|---|---|
+| `https://mustafaxln.github.io/barcode-app/app-ads.txt` | Hayır (proje alt yolu) |
+| `https://mustafaxln.github.io/app-ads.txt` | Evet — bu şart |
 
-İçerik (PM):
+Kaynak: [AdMob app-ads.txt](https://support.google.com/admob/answer/9363762?hl=en)
+
+Gerekli repo adı: **`mustafaxln.github.io`** (user Pages). Play **Website**: `https://mustafaxln.github.io`  
+Gizlilik URL’si ayrı kalır: `https://mustafaxln.github.io/barcode-app/privacy.html`
+
+İçerik:
 
 ```
 pub-7672443581181379, DIRECT, f08c47fec0942fa0
 ```
 
-Crawl birkaç saat–1 gün sürebilir; AdMob’da “app-ads.txt durumunu kontrol et” ile yenile.
+Crawl birkaç saat–1 gün sürebilir.
 
 ## Play / uyumluluk
 
